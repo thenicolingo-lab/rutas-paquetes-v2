@@ -200,20 +200,68 @@ async function calculateRoute() {
     }
 }
 
-function displayRoute(stops) {
+async function displayRoute(stops) {
     const container = document.getElementById('optimized-stops');
-    container.innerHTML = ""; 
+    container.innerHTML = "";
     document.getElementById('route-results').style.display = "block";
-    
+
+    // Calculate distances between consecutive stops
+    const distances = [];
     for (let i = 0; i < stops.length - 1; i++) {
+        try {
+            const dist = await calculateDistance(stops[i], stops[i + 1]);
+            distances.push(dist);
+        } catch (e) {
+            distances.push('N/A');
+        }
+    }
+
+    // Animate each stop appearing one by one
+    for (let i = 0; i < stops.length; i++) {
+        await new Promise(resolve => setTimeout(resolve, 300)); // Delay between animations
+        
         const step = document.createElement('div');
-        step.className = 'route-step';
-        step.style.animationDelay = `${i * 0.1}s`;
+        step.className = 'route-step map-icon';
+        step.style.animationDelay = `${i * 0.3}s`;
+        
+        const distanceBadge = i < distances.length && distances[i] !== 'N/A' 
+            ? `<span class="distance-badge">📍 ${distances[i]} km</span>` 
+            : '';
+        
         step.innerHTML = `
-            <span><strong>${i+1}.</strong> ${stops[i+1]}</span>
-            <button onclick="navigateTo('${stops[i+1]}')">🗺️ Ir</button>
+            <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap;">
+                <span>
+                    <strong>${i === 0 ? '🏁' : i === stops.length - 1 ? '🏆' : '📦'} ${i + 1}.</strong> 
+                    ${stops[i]}
+                    ${distanceBadge}
+                </span>
+                <button onclick="navigateTo('${stops[i]}')" class="btn-blue" style="padding: 5px 10px; font-size: 0.9em;">
+                    🗺️ Ir
+                </button>
+            </div>
         `;
         container.appendChild(step);
+    }
+}
+
+// Calculate distance between two addresses using OpenRouteService
+async function calculateDistance(from, to) {
+    try {
+        const [fromCoords, toCoords] = await Promise.all([
+            geocodeAddress(from),
+            geocodeAddress(to)
+        ]);
+
+        const response = await fetch(
+            `https://api.openrouteservice.org/v2/directions/driving-car?api_key=${API_KEY}&start=${fromCoords[0]},${fromCoords[1]}&end=${toCoords[0]},${toCoords[1]}`
+        );
+        
+        const data = await response.json();
+        const distanceInMeters = data.features[0].properties.summary.distance;
+        return (distanceInMeters / 1000).toFixed(1); // Convert to km
+    } catch (e) {
+        console.error('Error calculating distance:', e);
+        return 'N/A';
     }
 }
 
