@@ -221,3 +221,158 @@ function navigateTo(address) {
     const url = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(address + ', Mosquera, Colombia')}`;
     window.open(url, '_blank');
 }
+// Gemini API Configuration
+const GEMINI_API_KEY = 'YOUR_GEMINI_API_KEY_HERE'; // Replace with your key
+const GEMINI_MODEL = 'gemini-1.5-flash'; // Free tier model
+
+let uploadedImages = [];
+
+// Handle image upload
+document.getElementById('image-input').addEventListener('change', function(e) {
+    const files = Array.from(e.target.files);
+    uploadedImages = [...uploadedImages, ...files];
+    
+    document.getElementById('file-count').innerText = `${uploadedImages.length} fotos seleccionadas`;
+    document.getElementById('analyze-btn').disabled = uploadedImages.length === 0;
+    
+    // Show previews
+    const previewContainer = document.getElementById('preview-container');
+    previewContainer.innerHTML = '';
+    
+    uploadedImages.forEach((file, index) => {
+        const reader = new FileReader();
+        reader.onload = function(event) {
+            const img = document.createElement('img');
+            img.src = event.target.result;
+            previewContainer.appendChild(img);
+        };
+        reader.readAsDataURL(file);
+    });
+});
+
+// Convert image to base64
+async function imageToBase64(file) {
+    return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(reader.result.split(',')[1]);
+        reader.onerror = reject;
+        reader.readAsDataURL(file);
+    });
+}
+
+// Analyze images with Gemini
+async function analyzeWithGemini() {
+    const btn = document.getElementById('analyze-btn');
+    const originalText = btn.innerText;
+    btn.innerHTML = '<span class="loading"></span> Analizando...';
+    btn.disabled = true;
+
+    try {
+        const parts = [];
+        
+        // Add the prompt
+        parts.push({
+            text: `# ROLE & TASK
+Actúa como un asistente de logística automatizado experto en geocodificación de Colombia. Tu tarea es analizar las imágenes de guías de envío adjuntas, limpiar las inconsistencias de texto y extraer exclusivamente la dirección estructurada (Nomenclatura urbana + Municipio).
+
+# TARGET CITIES
+- Funza
+- Mosquera
+*Nota: Trata "Funza" y "Mosquera" estrictamente como el municipio/ciudad de destino. Nunca los ignores, nunca los elimines y nunca los confundas con nombres de barrios.*
+
+# DATA FILTERING RULES
+- [KEEP] Solo extrae: Tipo de vía (Calle, Carrera, Diagonal, Av, Cl, Cra, etc.), las letras/números de la nomenclatura urbana y el Municipio de destino (Funza o Mosquera).
+- [DELETE] Elimina por completo de la salida: Nombres de personas, teléfonos, códigos postales (C.P.), nombres de departamentos (Cundinamarca), nombres de barrios (ej: "La Cita", "La Chaguya") y referencias/descripciones de ubicación (ej: "casa esquinera", "primer piso", "local", "asadero").
+
+# DATA STANDARDIZATION & CLEANING (ANTI-ERROR)
+Si la etiqueta contiene errores de digitación o inconsistencias del usuario, corrígelos automáticamente antes de dar la salida:
+1. Elimina duplicaciones de palabras clave de vías (ej: Si dice "Calle Calle 10" o "Cl Calle 10", unifícalo a "Calle 10").
+2. Corrige abreviaciones confusas para que mantengan la estructura estándar: Tipo de vía + Número # Número - Número (ej: "carrera 10b#10-02").
+3. Si el municipio (Funza/Mosquera) aparece pegado a otras palabras o repetido en la sección de departamento (como "FUNZA/CUNDINAMARCA"), extrae únicamente el nombre limpio del municipio separado por una coma.
+
+# FORMATTING SPECIFICATIONS
+- Entrega TODO el resultado final en una única línea de texto continuo.
+- Separa cada dirección extraída utilizando únicamente un punto y coma (;).
+- No agregues saludos, introducciones, viñetas, saltos de línea ni texto aclaratorio. La salida debe ser puramente de datos crudos limpios.
+
+# OUTPUT FORMAT TARGET
+Dirección 1, Municipio; Dirección 2, Municipio; Dirección 3, Municipio.... and so on.`
+        });
+
+        // Add all images
+        for (const file of uploadedImages) {
+            const base64 = await imageToBase64(file);
+            parts.push({
+                inline_data: {
+                    mime_type: file.type,
+                    data: base64
+                }
+            });
+        }
+
+        const response = await fetch(
+            `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent?key=${GEMINI_API_KEY}`,
+            {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    contents: [{ parts }],
+                    generationConfig: {
+                        temperature: 0.1,
+                        maxOutputTokens: 2048
+                    }
+                })
+            }
+        );
+
+        const data = await response.json();
+        
+        if (data.candidates && data.candidates[0]) {
+            const extractedText = data.candidates[0].content.parts[0].text;
+            document.getElementById('extracted-addresses').value = extractedText;
+            document.getElementById('ai-result-box').style.display = 'block';
+            showSuccessMessage('✅ Análisis completado');
+        } else {
+            throw new Error('No se pudo procesar las imágenes');
+        }
+
+    } catch (error) {
+        alert('Error al analizar: ' + error.message);
+        console.error(error);
+    } finally {
+        btn.innerText = originalText;
+        btn.disabled = false;
+    }
+}
+
+// Copy addresses to clipboard
+function copyAddresses() {
+    const textarea = document.getElementById('extracted-addresses');
+    textarea.select();
+    document.execCommand('copy');
+    showSuccessMessage('📋 Direcciones copiadas');
+}
+
+// Load addresses to route
+function loadToRoute() {
+    const addresses = document.getElementById('extracted-addresses').value;
+    const addressList = addresses.split(';').map(addr => addr.trim()).filter(addr => addr);
+    
+    addressList.forEach(addr => {
+        addStopToList(addr);
+    });
+    
+    showSuccessMessage(`✅ ${addressList.length} direcciones cargadas`);
+    document.getElementById('ai-result-box').style.display = 'none';
+}
+
+// Clear AI results
+function clearAIResults() {
+    document.getElementById('extracted-addresses').value = '';
+    document.getElementById('ai-result-box').style.display = 'none';
+    uploadedImages = [];
+    document.getElementById('image-input').value = '';
+    document.getElementById('file-count').innerText = '0 fotos seleccionadas';
+    document.getElementById('preview-container').innerHTML = '';
+    document.getElementById('analyze-btn').disabled = true;
+}
