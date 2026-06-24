@@ -381,19 +381,19 @@ async function displayRoute(stops) {
                         </g>
                     </svg>
                     
-                    <!-- Stops and Labels with radial offset -->
+                    <!-- Stops and Labels -->
                     ${stops.map((stop, i) => {
                         const angle = (i * (360 / stops.length)) - 90;
                         const angleRad = angle * Math.PI / 180;
                         
-                        // Position for the small circle (on the ring)
-                        const circleRadius = 40;
+                        // Position for the small circle (inside the ring)
+                        const circleRadius = 42; 
                         const stopX = 50 + circleRadius * Math.cos(angleRad);
                         const stopY = 50 + circleRadius * Math.sin(angleRad);
                         
-                        // Position for label - pushed MUCH further outward radially
-                        // This creates the cushion effect - right side goes right, left goes left, etc.
-                        const labelRadius = 85;
+                        // Position for label (pushed well outside the ring)
+                        // 85% radius puts them clearly outside the 50% border
+                        const labelRadius = 85; 
                         const labelX = 50 + labelRadius * Math.cos(angleRad);
                         const labelY = 50 + labelRadius * Math.sin(angleRad);
                         
