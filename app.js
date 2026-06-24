@@ -222,7 +222,7 @@ Dirección 1, Municipio; Dirección 2, Municipio; Dirección 3, Municipio`
                 'Content-Type': 'application/json'
             },
             body: JSON.stringify({
-                model: 'meta-llama/llama-4-scout-17b-16e-instruct', // ✅ UPDATED MODEL
+                model: 'meta-llama/llama-4-scout-17b-16e-instruct',
                 messages: messages,
                 temperature: 0.1,
                 max_tokens: 1024
@@ -351,60 +351,130 @@ async function displayRoute(stops) {
     container.innerHTML = "";
     document.getElementById('route-results').style.display = "block";
 
+    // Calculate all distances first
     const distances = [];
     for (let i = 0; i < stops.length - 1; i++) {
         try {
             const dist = await calculateDistance(stops[i], stops[i + 1]);
             distances.push(dist);
+            console.log(`Distance from stop ${i} to ${i+1}: ${dist} km`);
         } catch (e) {
-            distances.push('N/A');
+            console.error(`Error calculating distance ${i} to ${i+1}:`, e);
+            distances.push('0.0');
         }
     }
 
-    for (let i = 0; i < stops.length; i++) {
-        await new Promise(resolve => setTimeout(resolve, 300)); 
-        
-        const step = document.createElement('div');
-        step.className = 'route-step map-icon';
-        step.style.animationDelay = `${i * 0.3}s`;
-        
-        const distanceBadge = i < distances.length && distances[i] !== 'N/A' 
-            ? `<span class="distance-badge">📍 ${distances[i]} km</span>` 
-            : '';
-        
-        step.innerHTML = `
-            <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap;">
-                <span>
-                    <strong>${i === 0 ? '🏁' : i === stops.length - 1 ? '🏆' : '📦'} ${i + 1}.</strong> 
-                    ${stops[i]}
-                    ${distanceBadge}
-                </span>
-                <button onclick="navigateTo('${stops[i]}')" class="btn-blue" style="padding: 5px 10px; font-size: 0.9em;">
-                    🗺️ Ir
-                </button>
+    // Create circular route visualization
+    const routeHTML = `
+        <div class="circular-route-container">
+            <div class="route-circle-wrapper">
+                <div class="route-circle">
+                    <div class="circle-center">
+                        <div class="center-icon">📦</div>
+                        <div class="center-text">RUTA<br>MÁS<br>EFICIENTE</div>
+                        <div class="center-subtitle">Toca cualquier punto<br>para ir a la dirección<br>en <span style="color: #4285F4">Google Maps</span></div>
+                    </div>
+                    
+                    ${stops.map((stop, i) => {
+                        const angle = (i * (360 / stops.length)) - 90; // Start from top
+                        const radius = 42; // Percentage from center
+                        const x = 50 + radius * Math.cos(angle * Math.PI / 180);
+                        const y = 50 + radius * Math.sin(angle * Math.PI / 180);
+                        
+                        const distance = i < distances.length ? distances[i] : null;
+                        const isStart = i === 0;
+                        const isEnd = i === stops.length - 1;
+                        
+                        return `
+                            <div class="route-stop-point" style="left: ${x}%; top: ${y}%;" onclick="navigateTo('${stop.replace(/'/g, "\\'")}')">
+                                <div class="stop-number ${isStart ? 'start' : ''} ${isEnd ? 'end' : ''}">${i + 1}</div>
+                                ${distance !== null ? `
+                                    <div class="stop-distance" style="left: ${x + 8}%; top: ${y - 5}%">
+                                        ${distance} km
+                                    </div>
+                                ` : ''}
+                                <div class="stop-label ${isStart ? 'label-start' : ''} ${isEnd ? 'label-end' : ''}">
+                                    ${isStart ? '🏢 ÁREA DE CARGA' : isEnd ? '🏠 HOGAR' : ''}
+                                </div>
+                            </div>
+                        `;
+                    }).join('')}
+                </div>
+                <div class="circle-animation"></div>
             </div>
-        `;
-        container.appendChild(step);
-    }
+            
+            <div class="route-list-alternative">
+                ${stops.map((stop, i) => {
+                    const distance = i < distances.length ? distances[i] : null;
+                    const isStart = i === 0;
+                    const isEnd = i === stops.length - 1;
+                    
+                    return `
+                        <div class="stop-card-visual" onclick="navigateTo('${stop.replace(/'/g, "\\'")}')">
+                            <div class="stop-icon">${isStart ? '🏢' : isEnd ? '🏆' : '📦'}</div>
+                            <div class="stop-info">
+                                <div class="stop-number-badge">${i + 1}</div>
+                                <div class="stop-address">${stop}</div>
+                            </div>
+                            ${distance !== null ? `
+                                <div class="distance-badge-visual">
+                                    <span>📍</span> ${distance} km
+                                </div>
+                            ` : ''}
+                            <button class="btn-ir-maps" onclick="event.stopPropagation(); navigateTo('${stop.replace(/'/g, "\\'")}')">
+                                🗺️ IR
+                            </button>
+                        </div>
+                    `;
+                }).join('')}
+            </div>
+        </div>
+    `;
+    
+    container.innerHTML = routeHTML;
+    
+    // Add animation class after a delay
+    setTimeout(() => {
+        const circleAnim = document.querySelector('.circle-animation');
+        if (circleAnim) {
+            circleAnim.classList.add('animate-clockwise');
+        }
+    }, 500);
 }
 
 async function calculateDistance(from, to) {
     try {
+        console.log(`Calculating distance: "${from}" to "${to}"`);
+        
         const [fromCoords, toCoords] = await Promise.all([
             geocodeAddress(from),
             geocodeAddress(to)
         ]);
 
+        console.log(`Coords: ${fromCoords} to ${toCoords}`);
+
         const response = await fetch(
             `https://api.openrouteservice.org/v2/directions/driving-car?api_key=${API_KEY}&start=${fromCoords[0]},${fromCoords[1]}&end=${toCoords[0]},${toCoords[1]}`
         );
         
+        if (!response.ok) {
+            throw new Error(`API error: ${response.status}`);
+        }
+        
         const data = await response.json();
+        
+        if (!data.features || !data.features[0] || !data.features[0].properties.summary) {
+            throw new Error('Invalid response data');
+        }
+        
         const distanceInMeters = data.features[0].properties.summary.distance;
-        return (distanceInMeters / 1000).toFixed(1); 
+        const distanceInKm = (distanceInMeters / 1000).toFixed(1);
+        
+        console.log(`Distance calculated: ${distanceInKm} km`);
+        return distanceInKm;
     } catch (e) {
         console.error('Error calculating distance:', e);
-        return 'N/A';
+        return '0.0';
     }
 }
 
