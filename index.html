@@ -5,620 +5,92 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>MayitaEntregas - Optimizador de Rutas</title>
     <link rel="manifest" href="manifest.json">
-    <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
+        * { margin: 0; padding: 0; box-sizing: border-box; }
         :root {
-            --primary: #FF6B35;
-            --secondary: #004E89;
-            --accent: #1A936F;
-            --light: #F7F7F7;
-            --dark: #2D3142;
+            --primary: #FF6B35; --secondary: #004E89; --accent: #1A936F; --light: #F7F7F7; --dark: #2D3142;
             --gradient-1: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             --gradient-2: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
             --gradient-3: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
             --gradient-primary: linear-gradient(135deg, #FF6B35 0%, #F7931E 100%);
             --gradient-secondary: linear-gradient(135deg, #004E89 0%, #1A936F 100%);
-            --shadow: 0 10px 40px rgba(0,0,0,0.1);
-            --shadow-hover: 0 15px 50px rgba(0,0,0,0.15);
+            --shadow: 0 10px 40px rgba(0,0,0,0.1); --shadow-hover: 0 15px 50px rgba(0,0,0,0.15);
         }
+        body { font-family: 'Poppins', sans-serif; min-height: 100vh; background: linear-gradient(-45deg, #ee7752, #e73c7e, #23a6d5, #23d5ab); background-size: 400% 400%; animation: gradientShift 15s ease infinite; padding: 0; margin: 0; position: relative; overflow-x: hidden; }
+        @keyframes gradientShift { 0% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } 100% { background-position: 0% 50%; } }
+        .animated-bg { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: -1; overflow: hidden; }
+        .floating-shape { position: absolute; border-radius: 50%; opacity: 0.1; animation: float 20s infinite ease-in-out; }
+        .shape-1 { width: 300px; height: 300px; background: white; top: 10%; left: 10%; animation-delay: 0s; }
+        .shape-2 { width: 200px; height: 200px; background: white; top: 60%; right: 10%; animation-delay: 5s; }
+        .shape-3 { width: 150px; height: 150px; background: white; bottom: 10%; left: 30%; animation-delay: 10s; }
+        @keyframes float { 0%, 100% { transform: translateY(0) rotate(0deg); } 33% { transform: translateY(-30px) rotate(120deg); } 66% { transform: translateY(30px) rotate(240deg); } }
+        .container { max-width: 800px; margin: 0 auto; padding: 20px; }
+        .header { text-align: center; padding: 30px 20px; margin-bottom: 20px; animation: slideDown 0.8s ease; }
+        @keyframes slideDown { from { opacity: 0; transform: translateY(-30px); } to { opacity: 1; transform: translateY(0); } }
+        .logo-container { background: white; width: 150px; height: 150px; border-radius: 50%; margin: 0 auto 20px; display: flex; align-items: center; justify-content: center; box-shadow: var(--shadow); animation: pulse 2s infinite; position: relative; overflow: hidden; }
+        .logo-container::before { content: ''; position: absolute; top: -50%; left: -50%; width: 200%; height: 200%; background: linear-gradient(45deg, transparent, rgba(255,255,255,0.3), transparent); transform: rotate(45deg); animation: shine 3s infinite; }
+        @keyframes shine { 0% { transform: translateX(-100%) translateY(-100%) rotate(45deg); } 100% { transform: translateX(100%) translateY(100%) rotate(45deg); } }
+        @keyframes pulse { 0%, 100% { transform: scale(1); box-shadow: 0 10px 40px rgba(255,107,53,0.3); } 50% { transform: scale(1.05); box-shadow: 0 15px 50px rgba(255,107,53,0.4); } }
+        .logo-container svg { width: 120px; height: 120px; fill: var(--primary); z-index: 1; }
+        .app-title { font-size: 2.5em; font-weight: 700; color: white; text-shadow: 0 4px 15px rgba(0,0,0,0.2); margin-bottom: 10px; letter-spacing: -1px; }
+        .app-subtitle { font-size: 1.1em; color: rgba(255,255,255,0.95); font-weight: 300; }
+        section { background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(10px); padding: 25px; margin-bottom: 20px; border-radius: 20px; box-shadow: var(--shadow); animation: slideUp 0.6s ease; transition: all 0.3s ease; border: 1px solid rgba(255,255,255,0.2); }
+        section:hover { transform: translateY(-3px); box-shadow: var(--shadow-hover); }
+        @keyframes slideUp { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
+        section h3 { color: var(--secondary); font-size: 1.4em; margin-bottom: 15px; font-weight: 600; display: flex; align-items: center; gap: 10px; }
+        section h3::before { content: ''; width: 4px; height: 24px; background: var(--gradient-primary); border-radius: 2px; }
+        label { display: block; color: var(--dark); font-weight: 500; margin-bottom: 8px; font-size: 0.95em; }
+        input, select, textarea { width: 100%; padding: 14px 18px; margin: 8px 0 15px; box-sizing: border-box; font-size: 15px; border: 2px solid #e0e0e0; border-radius: 12px; font-family: 'Poppins', sans-serif; transition: all 0.3s ease; background: white; }
+        input:focus, select:focus, textarea:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 4px rgba(255,107,53,0.1); transform: translateY(-2px); }
+        button { width: 100%; padding: 15px; margin: 8px 0; font-size: 16px; font-weight: 600; border: none; border-radius: 12px; cursor: pointer; transition: all 0.3s ease; font-family: 'Poppins', sans-serif; text-transform: uppercase; letter-spacing: 0.5px; position: relative; overflow: hidden; }
+        button::before { content: ''; position: absolute; top: 50%; left: 50%; width: 0; height: 0; border-radius: 50%; background: rgba(255,255,255,0.3); transform: translate(-50%, -50%); transition: width 0.6s, height 0.6s; }
+        button:hover::before { width: 300px; height: 300px; }
+        button { background: var(--gradient-primary); color: white; box-shadow: 0 4px 15px rgba(255,107,53,0.4); }
+        button:hover { transform: translateY(-3px); box-shadow: 0 8px 25px rgba(255,107,53,0.5); }
+        button:active { transform: translateY(-1px); }
+        .btn-green { background: var(--gradient-secondary); box-shadow: 0 4px 15px rgba(26,147,111,0.4); }
+        .btn-green:hover { box-shadow: 0 8px 25px rgba(26,147,111,0.5); }
+        .btn-red { background: linear-gradient(135deg, #dc3545 0%, #c82333 100%); width: auto; padding: 10px 20px; margin: 0; font-size: 14px; box-shadow: 0 4px 15px rgba(220,53,69,0.4); }
+        .btn-red:hover { box-shadow: 0 8px 25px rgba(220,53,69,0.5); }
+        .stop-card { background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%); padding: 15px 20px; margin: 10px 0; border-radius: 12px; display: flex; justify-content: space-between; align-items: center; gap: 15px; transition: all 0.3s ease; border-left: 4px solid var(--primary); animation: fadeIn 0.5s ease; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateX(-20px); } to { opacity: 1; transform: translateX(0); } }
+        .stop-card:hover { transform: translateX(5px); box-shadow: 0 5px 15px rgba(0,0,0,0.1); }
+        .stop-card input { margin: 0; flex: 1; border: none; background: transparent; padding: 5px; font-weight: 500; }
+        .stop-card input:focus { outline: none; background: white; border-radius: 6px; }
+        #route-results { background: linear-gradient(135deg, #fff5f0 0%, #ffe8dc 100%); border: 2px solid var(--primary); }
+        #route-results h3 { color: var(--primary); }
+        .route-step { background: white; padding: 15px 20px; margin: 10px 0; border-radius: 12px; display: flex; justify-content: space-between; align-items: center; gap: 15px; box-shadow: 0 3px 10px rgba(0,0,0,0.1); animation: slideIn 0.5s ease; }
+        @keyframes slideIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+        .route-step strong { color: var(--primary); font-size: 1.2em; margin-right: 10px; }
+        .route-step button { width: auto; padding: 10px 25px; margin: 0; font-size: 14px; background: var(--gradient-secondary); }
+        hr { border: 0; border-top: 2px solid #e0e0e0; margin: 20px 0; }
+        #gate-section { max-width: 500px; margin: 50px auto; text-align: center; background: rgba(255,255,255,0.98); }
+        #gate-input { text-align: center; font-size: 2em; letter-spacing: 10px; padding: 20px; }
+        .icon { display: inline-block; width: 24px; height: 24px; margin-right: 8px; vertical-align: middle; }
+        @media (max-width: 600px) { .app-title { font-size: 2em; } .logo-container { width: 120px; height: 120px; } .logo-container svg { width: 90px; height: 90px; } section { padding: 20px 15px; } }
+        .loading { display: inline-block; width: 20px; height: 20px; border: 3px solid rgba(255,255,255,0.3); border-radius: 50%; border-top-color: white; animation: spin 1s ease-in-out infinite; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        .success-message { background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%); color: white; padding: 15px; border-radius: 12px; margin: 15px 0; animation: slideDown 0.5s ease; text-align: center; font-weight: 500; }
 
-        body {
-            font-family: 'Poppins', sans-serif;
-            min-height: 100vh;
-            background: linear-gradient(-45deg, #ee7752, #e73c7e, #23a6d5, #23d5ab);
-            background-size: 400% 400%;
-            animation: gradientShift 15s ease infinite;
-            padding: 0;
-            margin: 0;
-            position: relative;
-            overflow-x: hidden;
-        }
-
-        @keyframes gradientShift {
-            0% { background-position: 0% 50%; }
-            50% { background-position: 100% 50%; }
-            100% { background-position: 0% 50%; }
-        }
-
-        .animated-bg {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            z-index: -1;
-            overflow: hidden;
-        }
-
-        .floating-shape {
-            position: absolute;
-            border-radius: 50%;
-            opacity: 0.1;
-            animation: float 20s infinite ease-in-out;
-        }
-
-        .shape-1 {
-            width: 300px;
-            height: 300px;
-            background: white;
-            top: 10%;
-            left: 10%;
-            animation-delay: 0s;
-        }
-
-        .shape-2 {
-            width: 200px;
-            height: 200px;
-            background: white;
-            top: 60%;
-            right: 10%;
-            animation-delay: 5s;
-        }
-
-        .shape-3 {
-            width: 150px;
-            height: 150px;
-            background: white;
-            bottom: 10%;
-            left: 30%;
-            animation-delay: 10s;
-        }
-
-        @keyframes float {
-            0%, 100% { transform: translateY(0) rotate(0deg); }
-            33% { transform: translateY(-30px) rotate(120deg); }
-            66% { transform: translateY(30px) rotate(240deg); }
-        }
-
-        .container {
-            max-width: 800px;
-            margin: 0 auto;
-            padding: 20px;
-        }
-
-        .header {
-            text-align: center;
-            padding: 30px 20px;
-            margin-bottom: 20px;
-            animation: slideDown 0.8s ease;
-        }
-
-        @keyframes slideDown {
-            from { opacity: 0; transform: translateY(-30px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        .logo-container {
-            background: white;
-            width: 150px;
-            height: 150px;
-            border-radius: 50%;
-            margin: 0 auto 20px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            box-shadow: var(--shadow);
-            animation: pulse 2s infinite;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .logo-container::before {
-            content: '';
-            position: absolute;
-            top: -50%;
-            left: -50%;
-            width: 200%;
-            height: 200%;
-            background: linear-gradient(45deg, transparent, rgba(255,255,255,0.3), transparent);
-            transform: rotate(45deg);
-            animation: shine 3s infinite;
-        }
-
-        @keyframes shine {
-            0% { transform: translateX(-100%) translateY(-100%) rotate(45deg); }
-            100% { transform: translateX(100%) translateY(100%) rotate(45deg); }
-        }
-
-        @keyframes pulse {
-            0%, 100% { transform: scale(1); box-shadow: 0 10px 40px rgba(255,107,53,0.3); }
-            50% { transform: scale(1.05); box-shadow: 0 15px 50px rgba(255,107,53,0.4); }
-        }
-
-        .logo-container svg {
-            width: 120px;
-            height: 120px;
-            fill: var(--primary);
-            z-index: 1;
-        }
-
-        .app-title {
-            font-size: 2.5em;
-            font-weight: 700;
-            color: white;
-            text-shadow: 0 4px 15px rgba(0,0,0,0.2);
-            margin-bottom: 10px;
-            letter-spacing: -1px;
-        }
-
-        .app-subtitle {
-            font-size: 1.1em;
-            color: rgba(255,255,255,0.95);
-            font-weight: 300;
-        }
-
-        section {
-            background: rgba(255, 255, 255, 0.95);
-            backdrop-filter: blur(10px);
-            padding: 25px;
-            margin-bottom: 20px;
-            border-radius: 20px;
-            box-shadow: var(--shadow);
-            animation: slideUp 0.6s ease;
-            transition: all 0.3s ease;
-            border: 1px solid rgba(255,255,255,0.2);
-        }
-
-        section:hover {
-            transform: translateY(-3px);
-            box-shadow: var(--shadow-hover);
-        }
-
-        @keyframes slideUp {
-            from { opacity: 0; transform: translateY(30px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        section h3 {
-            color: var(--secondary);
-            font-size: 1.4em;
-            margin-bottom: 15px;
-            font-weight: 600;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        section h3::before {
-            content: '';
-            width: 4px;
-            height: 24px;
-            background: var(--gradient-primary);
-            border-radius: 2px;
-        }
-
-        label {
-            display: block;
-            color: var(--dark);
-            font-weight: 500;
-            margin-bottom: 8px;
-            font-size: 0.95em;
-        }
-
-        input, select, textarea {
-            width: 100%;
-            padding: 14px 18px;
-            margin: 8px 0 15px;
-            box-sizing: border-box;
-            font-size: 15px;
-            border: 2px solid #e0e0e0;
-            border-radius: 12px;
-            font-family: 'Poppins', sans-serif;
-            transition: all 0.3s ease;
-            background: white;
-        }
-
-        input:focus, select:focus, textarea:focus {
-            outline: none;
-            border-color: var(--primary);
-            box-shadow: 0 0 0 4px rgba(255,107,53,0.1);
-            transform: translateY(-2px);
-        }
-
-        button {
-            width: 100%;
-            padding: 15px;
-            margin: 8px 0;
-            font-size: 16px;
-            font-weight: 600;
-            border: none;
-            border-radius: 12px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            font-family: 'Poppins', sans-serif;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            position: relative;
-            overflow: hidden;
-        }
-
-        button::before {
-            content: '';
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            width: 0;
-            height: 0;
-            border-radius: 50%;
-            background: rgba(255,255,255,0.3);
-            transform: translate(-50%, -50%);
-            transition: width 0.6s, height 0.6s;
-        }
-
-        button:hover::before {
-            width: 300px;
-            height: 300px;
-        }
-
-        button {
-            background: var(--gradient-primary);
-            color: white;
-            box-shadow: 0 4px 15px rgba(255,107,53,0.4);
-        }
-
-        button:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 8px 25px rgba(255,107,53,0.5);
-        }
-
-        button:active {
-            transform: translateY(-1px);
-        }
-
-        .btn-green {
-            background: var(--gradient-secondary);
-            box-shadow: 0 4px 15px rgba(26,147,111,0.4);
-        }
-
-        .btn-green:hover {
-            box-shadow: 0 8px 25px rgba(26,147,111,0.5);
-        }
-
-        .btn-red {
-            background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
-            width: auto;
-            padding: 10px 20px;
-            margin: 0;
-            font-size: 14px;
-            box-shadow: 0 4px 15px rgba(220,53,69,0.4);
-        }
-
-        .btn-red:hover {
-            box-shadow: 0 8px 25px rgba(220,53,69,0.5);
-        }
-
-        .stop-card {
-            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
-            padding: 15px 20px;
-            margin: 10px 0;
-            border-radius: 12px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            gap: 15px;
-            transition: all 0.3s ease;
-            border-left: 4px solid var(--primary);
-            animation: fadeIn 0.5s ease;
-        }
-
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateX(-20px); }
-            to { opacity: 1; transform: translateX(0); }
-        }
-
-        .stop-card:hover {
-            transform: translateX(5px);
-            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
-        }
-
-        .stop-card input {
-            margin: 0;
-            flex: 1;
-            border: none;
-            background: transparent;
-            padding: 5px;
-            font-weight: 500;
-        }
-
-        .stop-card input:focus {
-            outline: none;
-            background: white;
-            border-radius: 6px;
-        }
-
-        #video-container {
-            position: relative;
-            width: 100%;
-            border-radius: 15px;
-            overflow: hidden;
-            background: #000;
-            margin: 15px 0;
-            box-shadow: 0 8px 25px rgba(0,0,0,0.2);
-        }
-
-        video {
-            width: 100%;
-            display: block;
-        }
-
-        .target-box {
-            position: absolute;
-            top: 30%;
-            left: 10%;
-            width: 80%;
-            height: 40%;
-            border: 3px solid var(--primary);
-            box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.6), 0 0 20px rgba(255,107,53,0.8);
-            pointer-events: none;
-            border-radius: 10px;
-            animation: borderPulse 2s infinite;
-        }
-
-        @keyframes borderPulse {
-            0%, 100% { box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.6), 0 0 20px rgba(255,107,53,0.8); }
-            50% { box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.6), 0 0 40px rgba(255,107,53,1); }
-        }
-
-        #scanned-list {
-            margin-top: 20px;
-        }
-
-        #route-results {
-            background: linear-gradient(135deg, #fff5f0 0%, #ffe8dc 100%);
-            border: 2px solid var(--primary);
-        }
-
-        #route-results h3 {
-            color: var(--primary);
-        }
-
-        .route-step {
-            background: white;
-            padding: 15px 20px;
-            margin: 10px 0;
-            border-radius: 12px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            gap: 15px;
-            box-shadow: 0 3px 10px rgba(0,0,0,0.1);
-            animation: slideIn 0.5s ease;
-        }
-
-        @keyframes slideIn {
-            from { opacity: 0; transform: translateY(20px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        .route-step strong {
-            color: var(--primary);
-            font-size: 1.2em;
-            margin-right: 10px;
-        }
-
-        .route-step button {
-            width: auto;
-            padding: 10px 25px;
-            margin: 0;
-            font-size: 14px;
-            background: var(--gradient-secondary);
-        }
-
-        hr {
-            border: 0;
-            border-top: 2px solid #e0e0e0;
-            margin: 20px 0;
-        }
-
-        #gate-section {
-            max-width: 500px;
-            margin: 50px auto;
-            text-align: center;
-            background: rgba(255,255,255,0.98);
-        }
-
-        #gate-input {
-            text-align: center;
-            font-size: 2em;
-            letter-spacing: 10px;
-            padding: 20px;
-        }
-
-        .icon {
-            display: inline-block;
-            width: 24px;
-            height: 24px;
-            margin-right: 8px;
-            vertical-align: middle;
-        }
-
-        @media (max-width: 600px) {
-            .app-title { font-size: 2em; }
-            .logo-container { width: 120px; height: 120px; }
-            .logo-container svg { width: 90px; height: 90px; }
-            section { padding: 20px 15px; }
-        }
-
-        .loading {
-            display: inline-block;
-            width: 20px;
-            height: 20px;
-            border: 3px solid rgba(255,255,255,0.3);
-            border-radius: 50%;
-            border-top-color: white;
-            animation: spin 1s ease-in-out infinite;
-        }
-
-        @keyframes spin {
-            to { transform: rotate(360deg); }
-        }
-
-        .success-message {
-            background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
-            color: white;
-            padding: 15px;
-            border-radius: 12px;
-            margin: 15px 0;
-            animation: slideDown 0.5s ease;
-            text-align: center;
-            font-weight: 500;
-        }
         /* ========================================= */
-/* 📸 AI SCANNER & ENHANCED ROUTE STYLES     */
-/* ========================================= */
-
-/* Blue Button (Since your new HTML uses btn-blue) */
-.btn-blue {
-    background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
-    box-shadow: 0 4px 15px rgba(79, 172, 254, 0.4);
-}
-.btn-blue:hover {
-    box-shadow: 0 8px 25px rgba(79, 172, 254, 0.5);
-}
-
-/* AI Scanner Tips Box */
-.tips-box {
-    background: #fff3cd;
-    border: 1px solid #ffc107;
-    border-radius: 12px;
-    padding: 15px;
-    margin: 15px 0;
-    font-size: 0.9em;
-    color: #856404;
-}
-.tips-box ul {
-    margin: 10px 0 0 0;
-    padding-left: 20px;
-}
-
-/* Upload Area */
-.upload-area {
-    border: 2px dashed var(--primary);
-    border-radius: 12px;
-    padding: 20px;
-    text-align: center;
-    margin: 15px 0;
-    background: rgba(255, 107, 53, 0.05);
-}
-
-/* Image Previews */
-.preview-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
-    gap: 10px;
-    margin: 15px 0;
-}
-.preview-grid img {
-    width: 100%;
-    height: 100px;
-    object-fit: cover;
-    border-radius: 12px;
-    border: 2px solid #e0e0e0;
-}
-
-/* AI Result Box */
-#ai-result-box {
-    background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
-    border-radius: 12px;
-    padding: 20px;
-    margin: 20px 0;
-    border-left: 4px solid var(--accent);
-}
-#extracted-addresses {
-    width: 100%;
-    padding: 14px 18px;
-    border: 2px solid #e0e0e0;
-    border-radius: 12px;
-    font-family: monospace;
-    resize: vertical;
-    font-size: 15px;
-    transition: all 0.3s ease;
-    background: white;
-}
-#extracted-addresses:focus {
-    outline: none;
-    border-color: var(--primary);
-    box-shadow: 0 0 0 4px rgba(255,107,53,0.1);
-}
-
-/* Action Buttons Container */
-.action-buttons {
-    display: flex;
-    gap: 10px;
-    margin-top: 15px;
-    flex-wrap: wrap;
-}
-.action-buttons button {
-    flex: 1;
-    min-width: 120px;
-    margin: 0;
-    padding: 12px;
-    font-size: 14px;
-}
-
-/* --- ENHANCED ROUTE STEP (Overrides your old one) --- */
-.route-step {
-    background: white;
-    border-left: 4px solid var(--primary);
-    padding: 15px 20px;
-    margin: 10px 0;
-    border-radius: 12px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    gap: 15px;
-    box-shadow: 0 3px 10px rgba(0,0,0,0.1);
-    opacity: 0;
-    animation: slideIn 0.5s forwards !important;
-}
-
-/* Distance Badge */
-.distance-badge {
-    background: var(--accent);
-    color: white;
-    padding: 5px 12px;
-    border-radius: 20px;
-    font-size: 0.85em;
-    font-weight: 600;
-    margin-left: 10px;
-    white-space: nowrap;
-}
-
-/* Map Icon Animation */
-.map-icon {
-    animation: bounce 0.6s ease-out;
-}
-@keyframes bounce {
-    0%, 100% { transform: translateY(0); }
-    50% { transform: translateY(-8px); }
-}
+        /* 📸 AI SCANNER & ENHANCED ROUTE STYLES     */
+        /* ========================================= */
+        .btn-blue { background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); box-shadow: 0 4px 15px rgba(79, 172, 254, 0.4); color: white; }
+        .btn-blue:hover { box-shadow: 0 8px 25px rgba(79, 172, 254, 0.5); }
+        .tips-box { background: #fff3cd; border: 1px solid #ffc107; border-radius: 12px; padding: 15px; margin: 15px 0; font-size: 0.9em; color: #856404; }
+        .tips-box ul { margin: 10px 0 0 0; padding-left: 20px; }
+        .upload-area { border: 2px dashed var(--primary); border-radius: 12px; padding: 20px; text-align: center; margin: 15px 0; background: rgba(255, 107, 53, 0.05); }
+        .preview-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); gap: 10px; margin: 15px 0; }
+        .preview-grid img { width: 100%; height: 100px; object-fit: cover; border-radius: 12px; border: 2px solid #e0e0e0; }
+        #ai-result-box { background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%); border-radius: 12px; padding: 20px; margin: 20px 0; border-left: 4px solid var(--accent); }
+        #extracted-addresses { width: 100%; padding: 14px 18px; border: 2px solid #e0e0e0; border-radius: 12px; font-family: monospace; resize: vertical; font-size: 15px; transition: all 0.3s ease; background: white; }
+        #extracted-addresses:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 4px rgba(255,107,53,0.1); }
+        .action-buttons { display: flex; gap: 10px; margin-top: 15px; flex-wrap: wrap; }
+        .action-buttons button { flex: 1; min-width: 120px; margin: 0; padding: 12px; font-size: 14px; }
+        .distance-badge { background: var(--accent); color: white; padding: 5px 12px; border-radius: 20px; font-size: 0.85em; font-weight: 600; margin-left: 10px; white-space: nowrap; }
+        .map-icon { animation: bounce 0.6s ease-out; }
+        @keyframes bounce { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-8px); } }
     </style>
 </head>
 <body>
@@ -630,9 +102,9 @@
 
     <div class="container">
         <div class="header">
-          <div class="logo-container">
-    <img src="mayitalogo.svg" alt="MayitaEntregas Logo" style="width: 100%; height: 100%; object-fit: contain;">
-</div>
+            <div class="logo-container">
+                <img src="mayitalogo.svg" alt="MayitaEntregas Logo" style="width: 100%; height: 100%; object-fit: contain;">
+            </div>
             <h1 class="app-title">MayitaEntregas</h1>
             <p class="app-subtitle">Optimizador Inteligente de Rutas</p>
         </div>
@@ -660,44 +132,45 @@
                 <input type="text" id="new-pickup" placeholder="Nueva dirección para guardar...">
                 <button onclick="saveNewLocation('pickup')" class="btn-green">💾 Guardar dirección</button>
             </section>
-<!-- 📸 AI Label Scanner Section -->
-<section id="ai-scanner-section" class="fade-in">
-    <h3>📸 Escáner Inteligente de Guías</h3>
-    
-    <div class="tips-box">
-        <strong>💡 Consejos para mejores resultados:</strong>
-        <ul>
-            <li>📷 Toma fotos <strong>solo de la etiqueta adhesiva</strong>, no de toda la caja</li>
-            <li>🎯 Incluye <strong>mínimo 2 etiquetas</strong> claramente visibles por foto</li>
-            <li>💡 Buena iluminación y evita reflejos</li>
-            <li>📐 Mantén la cámara paralela a la etiqueta</li>
-        </ul>
-    </div>
 
-    <div class="upload-area" id="upload-area">
-        <input type="file" id="image-input" accept="image/*" multiple style="display:none">
-        <button class="btn-blue" onclick="document.getElementById('image-input').click()">
-            📤 Subir Fotos de Guías
-        </button>
-        <p id="file-count">0 fotos seleccionadas</p>
-    </div>
+            <!-- 📸 AI Label Scanner Section -->
+            <section id="ai-scanner-section" class="fade-in">
+                <h3>📸 Escáner Inteligente de Guías (IA)</h3>
+                
+                <div class="tips-box">
+                    <strong>💡 Consejos para mejores resultados:</strong>
+                    <ul>
+                        <li>📷 Toma fotos <strong>solo de la etiqueta adhesiva</strong>, no de toda la caja</li>
+                        <li>🎯 Incluye <strong>mínimo 2 etiquetas</strong> claramente visibles por foto</li>
+                        <li>💡 Buena iluminación y evita reflejos</li>
+                    </ul>
+                </div>
 
-    <div id="preview-container" class="preview-grid"></div>
+                <div class="upload-area" id="upload-area">
+                    <input type="file" id="image-input" accept="image/*" multiple style="display:none">
+                    <button class="btn-blue" onclick="document.getElementById('image-input').click()">
+                        📤 Subir Fotos de Guías
+                    </button>
+                    <p id="file-count">0 fotos seleccionadas</p>
+                </div>
 
-    <button class="btn-green" id="analyze-btn" onclick="analyzeWithGemini()" disabled>
-        🤖 Analizar con IA
-    </button>
+                <div id="preview-container" class="preview-grid"></div>
 
-    <div id="ai-result-box" style="display:none">
-        <h4>📋 Direcciones Extraídas:</h4>
-        <textarea id="extracted-addresses" rows="6" placeholder="Las direcciones aparecerán aquí..."></textarea>
-        <div class="action-buttons">
-            <button class="btn-blue" onclick="copyAddresses()">📋 Copiar</button>
-            <button class="btn-green" onclick="loadToRoute()">✅ Cargar a Ruta</button>
-            <button class="btn-red" onclick="clearAIResults()">🗑️ Limpiar</button>
-        </div>
-    </div>
-</section>
+                <button class="btn-green" id="analyze-btn" onclick="analyzeWithGemini()" disabled>
+                    🤖 Analizar con IA
+                </button>
+
+                <div id="ai-result-box" style="display:none">
+                    <h4>📋 Direcciones Extraídas:</h4>
+                    <textarea id="extracted-addresses" rows="6" placeholder="Las direcciones aparecerán aquí..."></textarea>
+                    <div class="action-buttons">
+                        <button class="btn-blue" onclick="copyAddresses()">📋 Copiar</button>
+                        <button class="btn-green" onclick="loadToRoute()">✅ Cargar a Ruta</button>
+                        <button class="btn-red" onclick="clearAIResults()">🗑️ Limpiar</button>
+                    </div>
+                </div>
+            </section>
+
             <section>
                 <h3>📦 Agregar dirección del paquete</h3>
                 <textarea id="bulk-addresses" rows="3" placeholder="Pega lista aquí (ej: Dir1;Dir2;Dir3)"></textarea>
@@ -709,6 +182,9 @@
                 </div>
 
                 <hr>
+                
+                <!-- REMOVED THE CAMERA SCANNER HERE -->
+                <div id="scanned-list"></div>
             </section>
 
             <section>
