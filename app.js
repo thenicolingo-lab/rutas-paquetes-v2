@@ -1,3 +1,5 @@
+const GEMINI_API_KEY = 'AQ.Ab8RN6KvwSyB0lGZH3yDZROGD_VkrIUhEntz9qTYBHElxnqimw'; // Get it from https://aistudio.google.com/app/apikey
+const GEMINI_MODEL = 'gemini-1.5-flash';
 window.onload = async function() {
     // Detectar si ya existe código
     const savedCode = localStorage.getItem('userCode');
@@ -423,4 +425,148 @@ function clearAIResults() {
     document.getElementById('file-count').innerText = '0 fotos seleccionadas';
     document.getElementById('preview-container').innerHTML = '';
     document.getElementById('analyze-btn').disabled = true;
+}
+// Gemini AI Functions
+let uploadedImages = [];
+
+function imageToBase64(file) {
+    return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(reader.result.split(',')[1]);
+        reader.onerror = reject;
+        reader.readAsDataURL(file);
+    });
+}
+
+async function analyzeWithGemini() {
+    if (!GEMINI_API_KEY || GEMINI_API_KEY === 'YOUR_ACTUAL_API_KEY_HERE') {
+        alert('⚠️ Primero debes agregar tu API Key de Gemini. Edita el archivo app.js y reemplaza YOUR_ACTUAL_API_KEY_HERE con tu clave de https://aistudio.google.com/app/apikey');
+        return;
+    }
+
+    const btn = document.getElementById('analyze-btn');
+    const originalText = btn.innerText;
+    btn.innerHTML = '<span class="loading"></span> Analizando...';
+    btn.disabled = true;
+
+    try {
+        const parts = [];
+        
+        parts.push({
+            text: `# ROLE & TASK
+Actúa como un asistente de logística automatizado experto en geocodificación de Colombia. Tu tarea es analizar las imágenes de guías de envío adjuntas, limpiar las inconsistencias de texto y extraer exclusivamente la dirección estructurada (Nomenclatura urbana + Municipio).
+
+# TARGET CITIES
+- Funza
+- Mosquera
+
+# DATA FILTERING RULES
+- [KEEP] Solo extrae: Tipo de vía (Calle, Carrera, Diagonal, Av, Cl, Cra, etc.), las letras/números de la nomenclatura urbana y el Municipio de destino (Funza o Mosquera).
+- [DELETE] Elimina: Nombres de personas, teléfonos, códigos postales, departamentos, barrios y referencias.
+
+# FORMATTING SPECIFICATIONS
+- Entrega TODO en una única línea separada por punto y coma (;)
+- Sin saludos ni texto adicional
+
+# OUTPUT FORMAT
+Dirección 1, Municipio; Dirección 2, Municipio`
+        });
+
+        for (const file of uploadedImages) {
+            const base64 = await imageToBase64(file);
+            parts.push({
+                inline_data: {
+                    mime_type: file.type,
+                    data: base64
+                }
+            });
+        }
+
+        const response = await fetch(
+            `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent?key=${GEMINI_API_KEY}`,
+            {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    contents: [{ parts }],
+                    generationConfig: {
+                        temperature: 0.1,
+                        maxOutputTokens: 2048
+                    }
+                })
+            }
+        );
+
+        const data = await response.json();
+        
+        if (data.candidates && data.candidates[0] && data.candidates[0].content && data.candidates[0].content.parts) {
+            const extractedText = data.candidates[0].content.parts[0].text;
+            document.getElementById('extracted-addresses').value = extractedText;
+            document.getElementById('ai-result-box').style.display = 'block';
+            showSuccessMessage('✅ Análisis completado');
+        } else {
+            throw new Error('No se pudo procesar las imágenes');
+        }
+
+    } catch (error) {
+        alert('Error al analizar: ' + error.message);
+        console.error(error);
+    } finally {
+        btn.innerText = originalText;
+        btn.disabled = false;
+    }
+}
+
+function copyAddresses() {
+    const textarea = document.getElementById('extracted-addresses');
+    textarea.select();
+    document.execCommand('copy');
+    showSuccessMessage('📋 Direcciones copiadas');
+}
+
+function loadToRoute() {
+    const addresses = document.getElementById('extracted-addresses').value;
+    const addressList = addresses.split(';').map(addr => addr.trim()).filter(addr => addr);
+    
+    addressList.forEach(addr => {
+        addStopToList(addr);
+    });
+    
+    showSuccessMessage(`✅ ${addressList.length} direcciones cargadas`);
+    document.getElementById('ai-result-box').style.display = 'none';
+}
+
+function clearAIResults() {
+    document.getElementById('extracted-addresses').value = '';
+    document.getElementById('ai-result-box').style.display = 'none';
+    uploadedImages = [];
+    document.getElementById('image-input').value = '';
+    document.getElementById('file-count').innerText = '0 fotos seleccionadas';
+    document.getElementById('preview-container').innerHTML = '';
+    document.getElementById('analyze-btn').disabled = true;
+}
+
+// Handle image upload for AI
+const imageInput = document.getElementById('image-input');
+if (imageInput) {
+    imageInput.addEventListener('change', function(e) {
+        const files = Array.from(e.target.files);
+        uploadedImages = [...uploadedImages, ...files];
+        
+        document.getElementById('file-count').innerText = `${uploadedImages.length} fotos seleccionadas`;
+        document.getElementById('analyze-btn').disabled = uploadedImages.length === 0;
+        
+        const previewContainer = document.getElementById('preview-container');
+        previewContainer.innerHTML = '';
+        
+        uploadedImages.forEach((file) => {
+            const reader = new FileReader();
+            reader.onload = function(event) {
+                const img = document.createElement('img');
+                img.src = event.target.result;
+                previewContainer.appendChild(img);
+            };
+            reader.readAsDataURL(file);
+        });
+    });
 }
