@@ -351,20 +351,7 @@ async function displayRoute(stops) {
     container.innerHTML = "";
     document.getElementById('route-results').style.display = "block";
 
-    // Calculate all distances first
-    const distances = [];
-    for (let i = 0; i < stops.length - 1; i++) {
-        try {
-            const dist = await calculateDistance(stops[i], stops[i + 1]);
-            distances.push(dist);
-            console.log(`Distance from stop ${i} to ${i+1}: ${dist} km`);
-        } catch (e) {
-            console.error(`Error calculating distance ${i} to ${i+1}:`, e);
-            distances.push('0.0');
-        }
-    }
-
-    // Create circular route visualization with arrows
+    // Create circular route visualization
     const routeHTML = `
         <div class="circular-route-container">
             <div class="route-circle-wrapper">
@@ -372,69 +359,29 @@ async function displayRoute(stops) {
                     <!-- Animated gradient background -->
                     <div class="circle-animated-bg"></div>
                     
-                    <!-- Center content -->
+                    <!-- Floating particles -->
+                    <div class="floating-particles">
+                        ${Array.from({length: 12}, (_, i) => `
+                            <div class="particle" style="--i: ${i}"></div>
+                        `).join('')}
+                    </div>
+                    
+                    <!-- Center content - transparent -->
                     <div class="circle-center">
                         <div class="center-icon">📦</div>
                         <div class="center-text">RUTA<br>MÁS<br>EFICIENTE</div>
-                        <div class="center-subtitle">Toca cualquier punto<br>para ir a la dirección<br>en <span style="color: #4285F4">Google Maps</span></div>
-                        <div class="center-hand-icon">
-                            <span class="hand">☝️</span> → 📍
-                        </div>
+                        <div class="center-subtitle">Toca cualquier punto<br>para ir a la dirección<br>en <span style="color: #00d2ff">Google Maps</span></div>
+                        <div class="center-hand-icon">☝️ → 📍</div>
                     </div>
                     
-                    <!-- SVG Arrows Layer -->
-                    <svg class="arrows-layer" viewBox="0 0 100 100" preserveAspectRatio="xMidYMid meet">
-                        ${stops.map((stop, i) => {
-                            const angle1 = (i * (360 / stops.length)) - 90;
-                            const angle2 = ((i + 1) * (360 / stops.length)) - 90;
-                            const radius = 38;
-                            
-                            const x1 = 50 + radius * Math.cos(angle1 * Math.PI / 180);
-                            const y1 = 50 + radius * Math.sin(angle1 * Math.PI / 180);
-                            const x2 = 50 + radius * Math.cos(angle2 * Math.PI / 180);
-                            const y2 = 50 + radius * Math.sin(angle2 * Math.PI / 180);
-                            
-                            // Calculate midpoint for distance label
-                            const midAngle = ((angle1 + angle2) / 2) * Math.PI / 180;
-                            const labelRadius = 48;
-                            const labelX = 50 + labelRadius * Math.cos(midAngle);
-                            const labelY = 50 + labelRadius * Math.sin(midAngle);
-                            
-                            const distance = distances[i] || '0.0';
-                            
-                            return `
-                                <!-- Arrow path -->
-                                <defs>
-                                    <marker id="arrowhead-${i}" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto">
-                                        <polygon points="0 0, 10 3, 0 6" fill="#00d2ff" />
-                                    </marker>
-                                </defs>
-                                <path d="M ${x1} ${y1} A 38 38 0 0 1 ${x2} ${y2}" 
-                                      fill="none" 
-                                      stroke="#00d2ff" 
-                                      stroke-width="0.8" 
-                                      marker-end="url(#arrowhead-${i})"
-                                      class="arrow-path"
-                                      style="animation: drawArrow ${1 + (i * 0.2)}s ease-out ${i * 0.3}s both" />
-                                
-                                <!-- Distance label -->
-                                <g class="distance-label-outer">
-                                    <rect x="${labelX - 8}" y="${labelY - 4}" width="16" height="8" rx="2" fill="rgba(46, 213, 115, 0.95)" />
-                                    <text x="${labelX}" y="${labelY}" text-anchor="middle" dominant-baseline="middle" 
-                                          fill="white" font-size="2.5" font-weight="bold">${distance}</text>
-                                </g>
-                            `;
-                        }).join('')}
-                    </svg>
-                    
-                    <!-- Stop Points -->
+                    <!-- Stop Points positioned ON the circle outline -->
                     ${stops.map((stop, i) => {
                         const angle = (i * (360 / stops.length)) - 90; // Start from top
-                        const radius = 35; // Distance from center
+                        const radius = 46; // Position ON the circle outline
                         const x = 50 + radius * Math.cos(angle * Math.PI / 180);
                         const y = 50 + radius * Math.sin(angle * Math.PI / 180);
                         
-                        // Label position (outside the circle)
+                        // Address label position (slightly outside)
                         const labelRadius = 58;
                         const labelX = 50 + labelRadius * Math.cos(angle * Math.PI / 180);
                         const labelY = 50 + labelRadius * Math.sin(angle * Math.PI / 180);
@@ -443,50 +390,24 @@ async function displayRoute(stops) {
                         const isEnd = i === stops.length - 1;
                         
                         // Shorten address for display
-                        const shortAddress = stop.length > 25 ? stop.substring(0, 25) + '...' : stop;
+                        const shortAddress = stop.length > 20 ? stop.substring(0, 20) + '...' : stop;
                         
                         return `
-                            <div class="route-stop-point" style="left: ${x}%; top: ${y}%;" onclick="navigateTo('${stop.replace(/'/g, "\\'")}')">
+                            <div class="route-stop-point" style="--x: ${x}; --y: ${y}; --label-x: ${labelX}; --label-y: ${labelY};" onclick="navigateTo('${stop.replace(/'/g, "\\'")}')">
+                                <!-- Numbered circle -->
                                 <div class="stop-number ${isStart ? 'start' : ''} ${isEnd ? 'end' : ''}">
                                     ${isStart ? '🏢' : isEnd ? '🏠' : i + 1}
                                 </div>
                                 
-                                <!-- External label -->
-                                <div class="stop-external-label" style="left: ${labelX}%; top: ${labelY}%;">
-                                    <div class="label-box ${isStart ? 'label-pickup' : ''} ${isEnd ? 'label-final' : ''}">
-                                        ${isStart ? '🏢 ÁREA DE CARGA' : isEnd ? '🏠 HOGAR' : shortAddress}
-                                    </div>
+                                <!-- Address label below -->
+                                <div class="stop-address-label">
+                                    ${isStart ? 'ÁREA DE CARGA' : isEnd ? 'HOGAR' : shortAddress}
                                 </div>
                             </div>
                         `;
                     }).join('')}
                 </div>
                 <div class="circle-animation"></div>
-            </div>
-            
-            <!-- List view below -->
-            <div class="route-list-alternative">
-                ${stops.map((stop, i) => {
-                    const distance = distances[i] || '0.0';
-                    const isStart = i === 0;
-                    const isEnd = i === stops.length - 1;
-                    
-                    return `
-                        <div class="stop-card-visual" onclick="navigateTo('${stop.replace(/'/g, "\\'")}')">
-                            <div class="stop-icon">${isStart ? '🏢' : isEnd ? '🏆' : '📦'}</div>
-                            <div class="stop-info">
-                                <div class="stop-number-badge">${i + 1}</div>
-                                <div class="stop-address">${stop}</div>
-                            </div>
-                            <div class="distance-badge-visual">
-                                <span>📍</span> ${distance} km
-                            </div>
-                            <button class="btn-ir-maps" onclick="event.stopPropagation(); navigateTo('${stop.replace(/'/g, "\\'")}')">
-                                🗺️ IR
-                            </button>
-                        </div>
-                    `;
-                }).join('')}
             </div>
         </div>
     `;
