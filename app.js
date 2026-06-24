@@ -131,7 +131,7 @@ function addStopToList(text) {
 }
 
 // ==========================================
-// 📸 GROQ AI SCANNER (FREE - Llama 3.2 Vision)
+// 📸 GROQ AI SCANNER
 // ==========================================
 let uploadedImages = [];
 
@@ -178,85 +178,6 @@ async function analyzeWithGroq() {
                     type: "text",
                     text: `# ROLE & TASK
 Actúa como un asistente de logística automatizado experto en geocodificación de Colombia. Tu tarea es analizar las imágenes de guías de envío adjuntas, limpiar las inconsistencias de texto y extraer exclusivamente la dirección estructurada (Nomenclatura urbana + Municipio).
-TARGET CITIES
-Funza
-Mosquera
-Nota: Trata "Funza" y "Mosquera" estrictamente como el municipio/ciudad de destino. Nunca los ignores, nunca los elimines y nunca los confundas con nombres de barrios.
-DATA FILTERING RULES
-[KEEP] Solo extrae: Tipo de vía (Calle, Carrera, Diagonal, Av, Cl, Cra, etc.), las letras/números de la nomenclatura urbana y el Municipio de destino (Funza o Mosquera).
-[DELETE] Elimina por completo de la salida: Nombres de personas, teléfonos, códigos postales (C.P.), nombres de departamentos (Cundinamarca), nombres de barrios (ej: "La Cita", "La Chaguya") y referencias/descripciones de ubicación (ej: "casa esquinera", "primer piso", "local", "asadero").
-DATA STANDARDIZATION & CLEANING (ANTI-ERROR)
-Si la etiqueta contiene errores de digitación o inconsistencias del usuario, corrígelos automáticamente antes de dar la salida:
-Elimina duplicaciones de palabras clave de vías (ej: Si dice "Calle Calle 10" o "Cl Calle 10", unifícalo a "Calle 10").
-Corrige abreviaciones confusas para que mantengan la estructura estándar: Tipo de vía + Número # Número - Número (ej: "carrera 10b#10-02").
-Si el municipio (Funza/Mosquera) aparece pegado a otras palabras o repetido en la sección de departamento (como "FUNZA/CUNDINAMARCA"), extrae únicamente el nombre limpio del municipio separado por una coma.
-FORMATTING SPECIFICATIONS
-Entrega TODO el resultado final en una única línea de texto continuo.
-Separa cada dirección extraída utilizando únicamente un punto y coma (;).
-No agregues saludos, introducciones, viñetas, saltos de línea ni texto aclaratorio. La salida debe ser puramente de datos crudos limpios.
-OUTPUT FORMAT TARGET
-Dirección 1, Municipio; Dirección 2, Municipio; Dirección 3, Municipio`
-                }
-            ]
-        }];
-        
-        for (const file of uploadedImages) {
-            const base64 = await imageToBase64(file);
-            messages[0].content.push({
-                type: "image_url",
-                image_url: {
-                    url: `data:${file.type};base64,${base64}`
-                }
-            });
-        }
-
-        const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
-            method: 'POST',
-            headers: {
-                'Authorization': `Bearer ${GROQ_API_KEY}`,
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-                model: 'meta-llama/llama-4-scout-17b-16e-instruct', // ✅ UPDATED MODEL
-                messages: messages,
-                temperature: 0.1,
-                max_tokens: 1024
-            })
-        });
-
-        const data = await response.json();
-        
-        if (data.choices && data.choices[0] && data.choices[0].message) {
-            const extractedText = data.choices[0].message.content.trim();
-            document.getElementById('extracted-addresses').value = extractedText;
-            document.getElementById('ai-result-box').style.display = 'block';
-            showSuccessMessage('✅ Análisis completado con IA');
-        } else {
-            throw new Error('No se pudo procesar las imágenes');
-        }
-
-    } catch (error) {
-        alert('Error al analizar: ' + error.message);
-        console.error(error);
-    } finally {
-        btn.innerText = originalText;
-        btn.disabled = false;
-    }
-}
-
-    const btn = document.getElementById('analyze-btn');
-    const originalText = btn.innerText;
-    btn.innerHTML = '<span class="loading"></span> Analizando...';
-    btn.disabled = true;
-
-    try {
-        const messages = [{
-            role: "user",
-            content: [
-                {
-                    type: "text",
-                    text: `# ROLE & TASK
-Actúa como un asistente de logística automatizado experto en geocodificación de Colombia. Tu tarea es analizar las imágenes de guías de envío adjuntas, limpiar las inconsistencias de texto y extraer exclusivamente la dirección estructurada (Nomenclatura urbana + Municipio).
 
 # TARGET CITIES
 - Funza
@@ -283,7 +204,7 @@ Dirección 1, Municipio; Dirección 2, Municipio; Dirección 3, Municipio`
                 }
             ]
         }];
-
+        
         for (const file of uploadedImages) {
             const base64 = await imageToBase64(file);
             messages[0].content.push({
@@ -301,7 +222,7 @@ Dirección 1, Municipio; Dirección 2, Municipio; Dirección 3, Municipio`
                 'Content-Type': 'application/json'
             },
             body: JSON.stringify({
-                model: 'llama-3.2-90b-vision-preview',
+                model: 'meta-llama/llama-4-scout-17b-16e-instruct', // ✅ UPDATED MODEL
                 messages: messages,
                 temperature: 0.1,
                 max_tokens: 1024
