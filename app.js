@@ -1,4 +1,3 @@
-// ==========================================
 // CONFIGURATION
 // ==========================================
 const API_KEY = 'eyJvcmciOiI1YjNjZTM1OTc4NTExMTAwMDFjZjYyNDgiLCJpZCI6IjEzZWNmZjAwZWNiYTQ4YjE5MTQ3MGZhZTFhZGMyY2E5IiwiaCI6Im11cm11cjY0In0=';
@@ -133,7 +132,7 @@ function addStopToList(text) {
 }
 
 // ==========================================
-// 📸 TESSERACT OCR - AI SCANNER (FREE!)
+// 📸 TESSERACT OCR - FREE AI SCANNER
 // ==========================================
 let uploadedImages = [];
 
@@ -162,8 +161,14 @@ if (imageInput) {
     });
 }
 
-// Analyze images with Tesseract OCR (FREE - No API Key!)
-async function analyzeWithGemini() {
+// Analyze images with Tesseract OCR (FREE!)
+async function analyzeWithTesseract() {
+    // Check if Tesseract is loaded
+    if (typeof Tesseract === 'undefined') {
+        alert('❌ Tesseract.js no se cargó. Verifica tu conexión a internet y recarga la página.');
+        return;
+    }
+
     const btn = document.getElementById('analyze-btn');
     const originalText = btn.innerText;
     btn.innerHTML = '<span class="loading"></span> Analizando...';
@@ -172,32 +177,26 @@ async function analyzeWithGemini() {
     try {
         let allAddresses = [];
 
-        // Process each image
         for (let i = 0; i < uploadedImages.length; i++) {
             const file = uploadedImages[i];
             
-            // Show progress
-            btn.innerText = `⏳ Procesando ${i + 1}/${uploadedImages.length}...`;
+            btn.innerText = ` Procesando ${i + 1}/${uploadedImages.length}...`;
             
             const result = await Tesseract.recognize(file, 'spa', {
                 logger: m => console.log(m)
             });
             
             const text = result.data.text;
-            
-            // Extract addresses from text using regex patterns
             const addresses = extractAddressesFromText(text);
             allAddresses = allAddresses.concat(addresses);
         }
 
-        // Remove duplicates and format
         const uniqueAddresses = [...new Set(allAddresses)];
         
         if (uniqueAddresses.length === 0) {
-            throw new Error('No se encontraron direcciones válidas en las imágenes');
+            throw new Error('No se encontraron direcciones válidas en las imágenes. Intenta con fotos más claras.');
         }
 
-        // Display results
         const formattedText = uniqueAddresses.join('; ');
         document.getElementById('extracted-addresses').value = formattedText;
         document.getElementById('ai-result-box').style.display = 'block';
@@ -212,36 +211,29 @@ async function analyzeWithGemini() {
     }
 }
 
-// Extract addresses from OCR text using patterns
+// Extract addresses from OCR text
 function extractAddressesFromText(text) {
     const addresses = [];
     const lines = text.split('\n');
-    
-    // Patterns for Colombian addresses (Funza/Mosquera)
-    const patterns = [
-        /(?:Calle|Cl|Carrera|Cra|Diagonal|Dia|Transversal|Tr|Avenida|Av|Crr)\s*\d+[A-Za-z]*\s*(?:#|-)?\s*\d+\s*(?:[-–]\s*\d+)?/gi,
-        /(?:Funza|Mosquera)/gi
-    ];
     
     lines.forEach(line => {
         line = line.trim();
         if (line.length < 5) return;
         
-        // Check if line contains address patterns
-        const hasStreet = /(?:Calle|Cl|Carrera|Cra|Diagonal|Dia|Transversal|Tr|Avenida|Av|Crr)/i.test(line);
+        const hasStreet = /(?:Calle|Cl|Carrera|Cra|Diagonal|Dia|Transversal|Tr|Avenida|Av|Crr|Calle|Cra|K|Cl)\s*\d+[A-Za-z]*/i.test(line);
         const hasNumber = /\d/.test(line);
         const hasCity = /(?:Funza|Mosquera)/i.test(line);
         
         if (hasStreet && hasNumber) {
-            // Clean and format the address
             let address = cleanAddress(line);
             
-            // Add city if not present
-            if (hasCity && !address.toLowerCase().includes('funza') && !address.toLowerCase().includes('mosquera')) {
+            if (hasCity) {
                 const city = line.match(/(?:Funza|Mosquera)/i)[0];
-                address += `, ${city}`;
-            } else if (!hasCity) {
-                // Default to Funza if no city mentioned
+                const cityFormatted = city.charAt(0).toUpperCase() + city.slice(1).toLowerCase();
+                if (!address.toLowerCase().includes('funza') && !address.toLowerCase().includes('mosquera')) {
+                    address += `, ${cityFormatted}`;
+                }
+            } else {
                 address += ', Funza';
             }
             
@@ -258,7 +250,7 @@ function extractAddressesFromText(text) {
 function cleanAddress(text) {
     let addr = text;
     
-    // Remove common unwanted words
+    // Remove unwanted words
     const removeWords = [
         'nombre:', 'destinatario:', 'telefono:', 'tel:', 'cel:', 
         'barrio:', 'referencia:', 'cp:', 'codigo:', 'postal:',
@@ -275,12 +267,10 @@ function cleanAddress(text) {
     addr = addr.replace(/\bCra\b/gi, 'Carrera');
     addr = addr.replace(/\bAv\b/gi, 'Avenida');
     addr = addr.replace(/\bDia\b/gi, 'Diagonal');
+    addr = addr.replace(/\bTr\b/gi, 'Transversal');
     
     // Clean up extra spaces
     addr = addr.replace(/\s+/g, ' ').trim();
-    
-    // Remove special characters except # and -
-    addr = addr.replace(/[^\w\s#\-,\.]/g, '');
     
     return addr;
 }
@@ -407,7 +397,7 @@ async function displayRoute(stops) {
                     ${distanceBadge}
                 </span>
                 <button onclick="navigateTo('${stops[i]}')" class="btn-blue" style="padding: 5px 10px; font-size: 0.9em;">
-                    🗺️ Ir
+                    ️ Ir
                 </button>
             </div>
         `;
