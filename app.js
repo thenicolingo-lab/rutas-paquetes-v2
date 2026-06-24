@@ -1,5 +1,7 @@
+// ==========================================
 // CONFIGURATION
 // ==========================================
+const GROQ_API_KEY = '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'; // Pega tu key de https://console.groq.com/
 const API_KEY = 'eyJvcmciOiI1YjNjZTM1OTc4NTExMTAwMDFjZjYyNDgiLCJpZCI6IjEzZWNmZjAwZWNiYTQ4YjE5MTQ3MGZhZTFhZGMyY2E5IiwiaCI6Im11cm11cjY0In0=';
 
 // ==========================================
@@ -132,11 +134,10 @@ function addStopToList(text) {
 }
 
 // ==========================================
-// 📸 TESSERACT OCR - FREE AI SCANNER
+// 📸 GROQ AI SCANNER (FREE - Llama 3.2 Vision)
 // ==========================================
 let uploadedImages = [];
 
-// Handle image upload
 const imageInput = document.getElementById('image-input');
 if (imageInput) {
     imageInput.addEventListener('change', function(e) {
@@ -161,11 +162,9 @@ if (imageInput) {
     });
 }
 
-// Analyze images with Tesseract OCR (FREE!)
-async function analyzeWithTesseract() {
-    // Check if Tesseract is loaded
-    if (typeof Tesseract === 'undefined') {
-        alert('❌ Tesseract.js no se cargó. Verifica tu conexión a internet y recarga la página.');
+async function analyzeWithGroq() {
+    if (!GROQ_API_KEY || GROQ_API_KEY === 'TU_API_KEY_DE_GROQ_AQUI') {
+        alert('⚠️ Primero obtén tu API Key gratis de https://console.groq.com/ y pégala en app.js');
         return;
     }
 
@@ -175,32 +174,75 @@ async function analyzeWithTesseract() {
     btn.disabled = true;
 
     try {
-        let allAddresses = [];
+        const messages = [{
+            role: "user",
+            content: [
+                {
+                    type: "text",
+                    text: `# ROLE & TASK
+Actúa como un asistente de logística automatizado experto en geocodificación de Colombia. Tu tarea es analizar las imágenes de guías de envío adjuntas, limpiar las inconsistencias de texto y extraer exclusivamente la dirección estructurada (Nomenclatura urbana + Municipio).
 
-        for (let i = 0; i < uploadedImages.length; i++) {
-            const file = uploadedImages[i];
-            
-            btn.innerText = ` Procesando ${i + 1}/${uploadedImages.length}...`;
-            
-            const result = await Tesseract.recognize(file, 'spa', {
-                logger: m => console.log(m)
+# TARGET CITIES
+- Funza
+- Mosquera
+*Nota: Trata "Funza" y "Mosquera" estrictamente como el municipio/ciudad de destino. Nunca los ignores, nunca los elimines y nunca los confundas con nombres de barrios.*
+
+# DATA FILTERING RULES
+- [KEEP] Solo extrae: Tipo de vía (Calle, Carrera, Diagonal, Av, Cl, Cra, etc.), las letras/números de la nomenclatura urbana y el Municipio de destino (Funza o Mosquera).
+- [DELETE] Elimina por completo de la salida: Nombres de personas, teléfonos, códigos postales (C.P.), nombres de departamentos (Cundinamarca), nombres de barrios (ej: "La Cita", "La Chaguya") y referencias/descripciones de ubicación (ej: "casa esquinera", "primer piso", "local", "asadero").
+
+# DATA STANDARDIZATION & CLEANING (ANTI-ERROR)
+Si la etiqueta contiene errores de digitación o inconsistencias del usuario, corrígelos automáticamente antes de dar la salida:
+1. Elimina duplicaciones de palabras clave de vías (ej: Si dice "Calle Calle 10" o "Cl Calle 10", unifícalo a "Calle 10").
+2. Corrige abreviaciones confusas para que mantengan la estructura estándar: Tipo de vía + Número # Número - Número (ej: "carrera 10b#10-02").
+3. Si el municipio (Funza/Mosquera) aparece pegado a otras palabras o repetido en la sección de departamento (como "FUNZA/CUNDINAMARCA"), extrae únicamente el nombre limpio del municipio separado por una coma.
+
+# FORMATTING SPECIFICATIONS
+- Entrega TODO el resultado final en una única línea de texto continuo.
+- Separa cada dirección extraída utilizando únicamente un punto y coma (;).
+- No agregues saludos, introducciones, viñetas, saltos de línea ni texto aclaratorio. La salida debe ser puramente de datos crudos limpios.
+
+# OUTPUT FORMAT TARGET
+Dirección 1, Municipio; Dirección 2, Municipio; Dirección 3, Municipio`
+                }
+            ]
+        }];
+
+        // Add each image
+        for (const file of uploadedImages) {
+            const base64 = await imageToBase64(file);
+            messages[0].content.push({
+                type: "image_url",
+                image_url: {
+                    url: `data:${file.type};base64,${base64}`
+                }
             });
-            
-            const text = result.data.text;
-            const addresses = extractAddressesFromText(text);
-            allAddresses = allAddresses.concat(addresses);
         }
 
-        const uniqueAddresses = [...new Set(allAddresses)];
+        const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${GROQ_API_KEY}`,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                model: 'llama-3.2-90b-vision-preview',
+                messages: messages,
+                temperature: 0.1,
+                max_tokens: 1024
+            })
+        });
+
+        const data = await response.json();
         
-        if (uniqueAddresses.length === 0) {
-            throw new Error('No se encontraron direcciones válidas en las imágenes. Intenta con fotos más claras.');
+        if (data.choices && data.choices[0] && data.choices[0].message) {
+            const extractedText = data.choices[0].message.content.trim();
+            document.getElementById('extracted-addresses').value = extractedText;
+            document.getElementById('ai-result-box').style.display = 'block';
+            showSuccessMessage('✅ Análisis completado con IA');
+        } else {
+            throw new Error('No se pudo procesar las imágenes');
         }
-
-        const formattedText = uniqueAddresses.join('; ');
-        document.getElementById('extracted-addresses').value = formattedText;
-        document.getElementById('ai-result-box').style.display = 'block';
-        showSuccessMessage(`✅ Se extrajeron ${uniqueAddresses.length} dirección(es)`);
 
     } catch (error) {
         alert('Error al analizar: ' + error.message);
@@ -211,68 +253,13 @@ async function analyzeWithTesseract() {
     }
 }
 
-// Extract addresses from OCR text
-function extractAddressesFromText(text) {
-    const addresses = [];
-    const lines = text.split('\n');
-    
-    lines.forEach(line => {
-        line = line.trim();
-        if (line.length < 5) return;
-        
-        const hasStreet = /(?:Calle|Cl|Carrera|Cra|Diagonal|Dia|Transversal|Tr|Avenida|Av|Crr|Calle|Cra|K|Cl)\s*\d+[A-Za-z]*/i.test(line);
-        const hasNumber = /\d/.test(line);
-        const hasCity = /(?:Funza|Mosquera)/i.test(line);
-        
-        if (hasStreet && hasNumber) {
-            let address = cleanAddress(line);
-            
-            if (hasCity) {
-                const city = line.match(/(?:Funza|Mosquera)/i)[0];
-                const cityFormatted = city.charAt(0).toUpperCase() + city.slice(1).toLowerCase();
-                if (!address.toLowerCase().includes('funza') && !address.toLowerCase().includes('mosquera')) {
-                    address += `, ${cityFormatted}`;
-                }
-            } else {
-                address += ', Funza';
-            }
-            
-            if (address.length > 10) {
-                addresses.push(address);
-            }
-        }
+async function imageToBase64(file) {
+    return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(reader.result.split(',')[1]);
+        reader.onerror = reject;
+        reader.readAsDataURL(file);
     });
-    
-    return addresses;
-}
-
-// Clean and standardize address format
-function cleanAddress(text) {
-    let addr = text;
-    
-    // Remove unwanted words
-    const removeWords = [
-        'nombre:', 'destinatario:', 'telefono:', 'tel:', 'cel:', 
-        'barrio:', 'referencia:', 'cp:', 'codigo:', 'postal:',
-        'cundinamarca', 'colombia'
-    ];
-    
-    removeWords.forEach(word => {
-        const regex = new RegExp(word, 'gi');
-        addr = addr.replace(regex, '');
-    });
-    
-    // Standardize street types
-    addr = addr.replace(/\bCl\b/gi, 'Calle');
-    addr = addr.replace(/\bCra\b/gi, 'Carrera');
-    addr = addr.replace(/\bAv\b/gi, 'Avenida');
-    addr = addr.replace(/\bDia\b/gi, 'Diagonal');
-    addr = addr.replace(/\bTr\b/gi, 'Transversal');
-    
-    // Clean up extra spaces
-    addr = addr.replace(/\s+/g, ' ').trim();
-    
-    return addr;
 }
 
 function copyAddresses() {
@@ -392,12 +379,12 @@ async function displayRoute(stops) {
         step.innerHTML = `
             <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap;">
                 <span>
-                    <strong>${i === 0 ? '🏁' : i === stops.length - 1 ? '🏆' : '📦'} ${i + 1}.</strong> 
+                    <strong>${i === 0 ? '🏁' : i === stops.length - 1 ? '' : '📦'} ${i + 1}.</strong> 
                     ${stops[i]}
                     ${distanceBadge}
                 </span>
                 <button onclick="navigateTo('${stops[i]}')" class="btn-blue" style="padding: 5px 10px; font-size: 0.9em;">
-                    ️ Ir
+                    🗺️ Ir
                 </button>
             </div>
         `;
