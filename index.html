@@ -106,11 +106,12 @@
         @keyframes rotateClockwise { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
         @keyframes pulseLine { 0%, 100% { opacity: 1; filter: drop-shadow(0 0 8px #a855f7); } 50% { opacity: 0.2; filter: drop-shadow(0 0 2px #7c3aed); } }
 
-       /* Stop Wrapper - positioned absolutely on the circle */
+
+/* Stop Wrapper - positioned directly on the circle */
 .stop-wrapper { 
-    position: absolute; 
-    left: 50%;
-    top: 50%;
+    position: absolute;
+    left: calc(var(--stop-x) * 1%);
+    top: calc(var(--stop-y) * 1%);
     transform: translate(-50%, -50%);
     pointer-events: none;
     z-index: 20; 
@@ -123,13 +124,7 @@
     box-shadow: 0 6px 25px rgba(0, 0, 0, 0.8), 0 0 30px rgba(124, 58, 237, 0.7);
 }
         
-        .stop-number { 
-    position: absolute;
-    left: calc((var(--stop-x) - 50) * 1%);
-    top: calc((var(--stop-y) - 50) * 1%);
-    transform: translate(-50%, -50%);
-    pointer-events: auto;
-    cursor: pointer;
+.stop-number { 
     width: 48px; 
     height: 48px; 
     border-radius: 50%; 
@@ -145,9 +140,12 @@
     text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3); 
     transition: all 0.3s ease;
     z-index: 25;
+    pointer-events: auto;
+    cursor: pointer;
+    margin: 0 auto;
 }
-        .stop-number:hover {
-    transform: translate(-50%, -50%) scale(1.15);
+.stop-number:hover {
+    transform: scale(1.15);
     z-index: 30;
 }
 .stop-number.start { 
@@ -164,11 +162,15 @@
         
         /* Updated Address Labels with dynamic positioning */
 /* Address Labels - pushed radially outward with cushion */
+/* Address Labels - positioned with radial offset */
 .stop-address-label { 
     position: absolute;
-    left: calc((var(--label-x) - 50) * 1%);
-    top: calc((var(--label-y) - 50) * 1%);
-    transform: translate(-50%, -50%);
+    left: 50%;
+    top: 50%;
+    transform: translate(
+        calc((var(--label-x) - var(--stop-x)) * 1%), 
+        calc((var(--label-y) - var(--stop-y)) * 1%)
+    );
     background: rgba(0, 0, 0, 0.9); 
     color: white; 
     padding: 8px 14px; 
@@ -188,9 +190,11 @@
     pointer-events: none;
     transition: all 0.3s ease;
 }
-
 .stop-wrapper:hover .stop-address-label {
-    transform: translate(-50%, -50%) scale(1.08);
+    transform: translate(
+        calc((var(--label-x) - var(--stop-x)) * 1.15%), 
+        calc((var(--label-y) - var(--stop-y)) * 1.15%)
+    ) scale(1.05);
     box-shadow: 0 8px 30px rgba(0, 0, 0, 0.9), 0 0 40px rgba(124, 58, 237, 0.8);
     z-index: 31;
 }
