@@ -98,7 +98,19 @@
         
         .circle-center { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); text-align: center; z-index: 10; padding: 20px; background: transparent; }
         .center-text { font-size: 1.6em; font-weight: 900; line-height: 1.2; margin-bottom: 10px; color: #000000; text-shadow: none; letter-spacing: 1px; }
-        .center-subtitle { font-size: 0.85em; line-height: 1.5; margin-bottom: 8px; color: #000000; text-shadow: none; font-weight: 600; }
+        .center-subtitle { 
+    font-size: 0.85em; 
+    line-height: 1.5; 
+    margin-bottom: 8px; 
+    color: #000000; 
+    text-shadow: none; 
+    font-weight: 600; 
+    
+    /* Add these lines to fix the width: */
+    max-width: 220px; 
+    margin-left: auto;
+    margin-right: auto;
+}
         .black-highlight { color: #000000; font-weight: 900; text-shadow: none; background: rgba(255, 255, 255, 0.8); padding: 1px 6px; border-radius: 4px; }
         
         .rotating-ring-svg { position: absolute; top: -6%; left: -6%; width: 112%; height: 112%; z-index: 5; pointer-events: none; overflow: visible; }
