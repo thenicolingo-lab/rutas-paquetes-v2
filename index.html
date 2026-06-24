@@ -157,24 +157,27 @@
     transform: translate(-50%, -50%); 
     background: rgba(0, 0, 0, 0.9); 
     color: white; 
-    padding: 8px 10px; /* Slightly less horizontal padding */ 
+    padding: 8px 10px; 
     border-radius: 10px; 
     font-size: 0.75em; 
     border: 2px solid rgba(124, 58, 237, 0.7); 
     box-shadow: 0 4px 20px rgba(0, 0, 0, 0.6), 0 0 20px rgba(124, 58, 237, 0.5); 
     backdrop-filter: blur(5px); 
-    max-width: 20px; /* CHANGED: Forces text to stack vertically */ 
-    white-space: normal; 
-    word-wrap: break-word; 
+    
+    /* --- THIS IS THE FIX --- */
+    width: 70px; /* Use 'width' to FORCE the box size, instead of max-width */
+    word-break: break-word; /* Forces text to wrap even if it's a long continuous string */
+    overflow-wrap: break-word; 
+    /* ----------------------- */
+
     text-align: center; 
     font-weight: 600; 
     text-shadow: 0 0 6px rgba(255, 255, 255, 0.3); 
-    line-height: 1.4; 
+    line-height: 1.3; 
     z-index: 26; 
     pointer-events: none;
     transition: all 0.3s ease;
 }
-
 .stop-wrapper:hover .stop-address-label {
     transform: translate(-50%, -50%) scale(1.05);
     box-shadow: 0 8px 30px rgba(0, 0, 0, 0.9), 0 0 40px rgba(124, 58, 237, 0.8);
