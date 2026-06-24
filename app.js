@@ -95,8 +95,14 @@ function addBulkAddresses() {
         alert('Por favor ingresa al menos una dirección');
         return;
     }
-    const count = textarea.value.split(';').filter(addr => addr.trim() !== "").length;
-    textarea.value.split(';').forEach(addr => { if (addr.trim() !== "") addStopToList(addr.trim()); });
+    const addresses = textarea.value.split(';');
+    let count = 0;
+    addresses.forEach(addr => { 
+        if (addr.trim() !== "") {
+            addStopToList(addr.trim());
+            count++;
+        }
+    });
     textarea.value = "";
     showSuccessMessage(`✅ ${count} dirección(es) agregada(s)`);
 }
