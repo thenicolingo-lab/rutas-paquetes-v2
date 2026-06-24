@@ -99,12 +99,9 @@
     position: relative;
     width: 100%;
     aspect-ratio: 1;
-    max-width: 400px;
+    max-width: 450px;
     margin: 0 auto 30px;
-    background: linear-gradient(135deg, #1a1f3a 0%, #0d1117 100%);
     border-radius: 50%;
-    box-shadow: 0 0 60px rgba(0, 123, 255, 0.3), inset 0 0 60px rgba(0, 123, 255, 0.1);
-    border: 3px solid rgba(0, 123, 255, 0.5);
     overflow: visible;
 }
 
@@ -112,6 +109,40 @@
     position: relative;
     width: 100%;
     height: 100%;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #1a1f3a 0%, #0d1117 50%, #1e3a5f 100%);
+    box-shadow: 0 0 80px rgba(0, 210, 255, 0.4), 
+                inset 0 0 100px rgba(0, 100, 255, 0.2),
+                0 0 120px rgba(0, 150, 255, 0.2);
+    border: 4px solid rgba(0, 210, 255, 0.6);
+    overflow: visible;
+}
+
+/* Animated gradient background */
+.circle-animated-bg {
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: conic-gradient(
+        from 0deg,
+        transparent 0deg,
+        rgba(0, 210, 255, 0.1) 60deg,
+        rgba(0, 150, 255, 0.2) 120deg,
+        transparent 180deg,
+        rgba(0, 210, 255, 0.1) 240deg,
+        rgba(0, 150, 255, 0.2) 300deg,
+        transparent 360deg
+    );
+    animation: rotateBg 10s linear infinite;
+    border-radius: 50%;
+    pointer-events: none;
+}
+
+@keyframes rotateBg {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
 }
 
 .circle-center {
@@ -123,29 +154,70 @@
     z-index: 10;
     color: white;
     padding: 20px;
+    background: rgba(13, 17, 23, 0.85);
+    border-radius: 20px;
+    backdrop-filter: blur(10px);
+    border: 2px solid rgba(0, 210, 255, 0.3);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
 }
 
 .center-icon {
-    font-size: 3em;
-    margin-bottom: 10px;
+    font-size: 2.5em;
+    margin-bottom: 8px;
     animation: pulse 2s infinite;
 }
 
 .center-text {
-    font-size: 1.5em;
+    font-size: 1.4em;
     font-weight: bold;
     line-height: 1.2;
-    margin-bottom: 10px;
-    background: linear-gradient(135deg, #fff 0%, #4285F4 100%);
+    margin-bottom: 8px;
+    background: linear-gradient(135deg, #fff 0%, #00d2ff 100%);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
 }
 
 .center-subtitle {
-    font-size: 0.85em;
-    opacity: 0.8;
+    font-size: 0.75em;
+    opacity: 0.85;
     line-height: 1.4;
+    margin-bottom: 8px;
+}
+
+.center-hand-icon {
+    font-size: 1.2em;
+    margin-top: 5px;
+}
+
+.arrows-layer {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 5;
+    pointer-events: none;
+}
+
+.arrow-path {
+    filter: drop-shadow(0 0 4px #00d2ff);
+}
+
+@keyframes drawArrow {
+    from {
+        stroke-dasharray: 100;
+        stroke-dashoffset: 100;
+        opacity: 0;
+    }
+    to {
+        stroke-dashoffset: 0;
+        opacity: 1;
+    }
+}
+
+.distance-label-outer {
+    pointer-events: none;
 }
 
 .route-stop-point {
@@ -157,12 +229,13 @@
 }
 
 .route-stop-point:hover {
-    transform: translate(-50%, -50%) scale(1.2);
+    transform: translate(-50%, -50%) scale(1.15);
+    z-index: 30;
 }
 
 .stop-number {
-    width: 40px;
-    height: 40px;
+    width: 42px;
+    height: 42px;
     border-radius: 50%;
     background: linear-gradient(135deg, #ff4757, #ff6348);
     color: white;
@@ -171,65 +244,74 @@
     justify-content: center;
     font-weight: bold;
     font-size: 1.1em;
-    box-shadow: 0 4px 15px rgba(255, 71, 87, 0.5);
+    box-shadow: 0 4px 20px rgba(255, 71, 87, 0.6), 
+                0 0 30px rgba(255, 71, 87, 0.4);
     border: 3px solid white;
+    position: relative;
+    z-index: 25;
 }
 
 .stop-number.start {
     background: linear-gradient(135deg, #2ed573, #7bed9f);
-    box-shadow: 0 4px 15px rgba(46, 213, 115, 0.5);
+    box-shadow: 0 4px 20px rgba(46, 213, 115, 0.6),
+                0 0 30px rgba(46, 213, 115, 0.4);
+    font-size: 1.3em;
 }
 
 .stop-number.end {
     background: linear-gradient(135deg, #ffa502, #ffc107);
-    box-shadow: 0 4px 15px rgba(255, 165, 2, 0.5);
+    box-shadow: 0 4px 20px rgba(255, 165, 2, 0.6),
+                0 0 30px rgba(255, 165, 2, 0.4);
+    font-size: 1.3em;
 }
 
-.stop-distance {
+.stop-external-label {
     position: absolute;
-    background: rgba(46, 213, 115, 0.9);
-    color: white;
-    padding: 4px 10px;
-    border-radius: 12px;
-    font-size: 0.85em;
-    font-weight: bold;
-    white-space: nowrap;
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
     transform: translate(-50%, -50%);
+    pointer-events: none;
+    z-index: 30;
 }
 
-.stop-label {
-    position: absolute;
-    top: -35px;
-    left: 50%;
-    transform: translateX(-50%);
+.label-box {
     background: rgba(13, 17, 23, 0.95);
     color: white;
-    padding: 5px 12px;
-    border-radius: 8px;
+    padding: 6px 12px;
+    border-radius: 10px;
     font-size: 0.75em;
     white-space: nowrap;
-    opacity: 0;
-    transition: opacity 0.3s;
-    border: 1px solid rgba(0, 123, 255, 0.5);
+    border: 2px solid rgba(0, 210, 255, 0.5);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4);
+    backdrop-filter: blur(5px);
+    max-width: 140px;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
-.route-stop-point:hover .stop-label {
-    opacity: 1;
+.label-box.label-pickup {
+    background: linear-gradient(135deg, rgba(46, 213, 115, 0.95), rgba(123, 237, 159, 0.95));
+    border-color: #2ed573;
+    font-weight: bold;
+}
+
+.label-box.label-final {
+    background: linear-gradient(135deg, rgba(255, 165, 2, 0.95), rgba(255, 193, 7, 0.95));
+    border-color: #ffa502;
+    font-weight: bold;
 }
 
 .circle-animation {
     position: absolute;
-    top: -3px;
-    left: -3px;
-    right: -3px;
-    bottom: -3px;
+    top: -5px;
+    left: -5px;
+    right: -5px;
+    bottom: -5px;
     border-radius: 50%;
-    border: 4px solid transparent;
-    border-top-color: #007bff;
-    border-right-color: #4285F4;
+    border: 5px solid transparent;
+    border-top-color: #00d2ff;
+    border-right-color: #0096ff;
     opacity: 0;
     pointer-events: none;
+    filter: drop-shadow(0 0 10px #00d2ff);
 }
 
 .circle-animation.animate-clockwise {
@@ -351,17 +433,23 @@
 /* Responsive */
 @media (max-width: 768px) {
     .route-circle-wrapper {
-        max-width: 300px;
+        max-width: 320px;
     }
     
     .center-text {
-        font-size: 1.2em;
+        font-size: 1.1em;
     }
     
     .stop-number {
-        width: 35px;
-        height: 35px;
+        width: 38px;
+        height: 38px;
         font-size: 1em;
+    }
+    
+    .label-box {
+        font-size: 0.7em;
+        padding: 4px 8px;
+        max-width: 110px;
     }
 }
     </style>
