@@ -393,7 +393,7 @@ async function displayRoute(stops) {
                         
                         // Position for label (pushed well outside the ring)
                         // 85% radius puts them clearly outside the 50% border
-                        const labelRadius = 85; 
+                        const labelRadius = 70; 
                         const labelX = 50 + labelRadius * Math.cos(angleRad);
                         const labelY = 50 + labelRadius * Math.sin(angleRad);
                         
