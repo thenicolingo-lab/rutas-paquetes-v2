@@ -367,7 +367,7 @@ async function displayRoute(stops) {
                     
                     <!-- Center content -->
                     <div class="circle-center">
-                        <div class="center-icon"></div>
+                        <div class="center-icon">📦</div>
                         <div class="center-text">RUTA<br>MÁS<br>EFICIENTE</div>
                         <div class="center-subtitle">Toca cualquier punto<br>para ir a la dirección<br>en <span class="black-highlight">Google Maps</span></div>
                         <div class="center-hand-icon">☝️ → 📍</div>
@@ -381,29 +381,14 @@ async function displayRoute(stops) {
                         </g>
                     </svg>
                     
-                    <!-- Stop Numbers (On the circle) -->
+                    <!-- Combined Stop Numbers and Labels -->
                     ${stops.map((stop, i) => {
                         const angle = (i * (360 / stops.length)) - 90;
                         const radius = 42; 
                         const x = 50 + radius * Math.cos(angle * Math.PI / 180);
                         const y = 50 + radius * Math.sin(angle * Math.PI / 180);
                         
-                        const isStart = i === 0;
-                        const isEnd = i === stops.length - 1;
-                        
-                        return `
-                            <div class="route-stop-point" style="left: ${x}%; top: ${y}%;">
-                                <div class="stop-number ${isStart ? 'start' : ''} ${isEnd ? 'end' : ''}" onclick="navigateTo('${stop.replace(/'/g, "\\'")}')">
-                                    ${isStart ? '🏢' : isEnd ? '🏠' : i + 1}
-                                </div>
-                            </div>
-                        `;
-                    }).join('')}
-
-                    <!-- Address Labels (Pushed outside) -->
-                    ${stops.map((stop, i) => {
-                        const angle = (i * (360 / stops.length)) - 90;
-                        const labelRadius = 68; // Further out to clear the circle
+                        const labelRadius = 68;
                         const labelX = 50 + labelRadius * Math.cos(angle * Math.PI / 180);
                         const labelY = 50 + labelRadius * Math.sin(angle * Math.PI / 180);
                         
@@ -411,8 +396,13 @@ async function displayRoute(stops) {
                         const isEnd = i === stops.length - 1;
                         
                         return `
-                            <div class="stop-address-label" style="left: ${labelX}%; top: ${labelY}%;">
-                                ${isStart ? 'ÁREA DE CARGA' : isEnd ? 'HOGAR' : stop}
+                            <div class="stop-wrapper" style="--stop-x: ${x}; --stop-y: ${y}; --label-x: ${labelX}; --label-y: ${labelY};">
+                                <div class="stop-number ${isStart ? 'start' : ''} ${isEnd ? 'end' : ''}" onclick="navigateTo('${stop.replace(/'/g, "\\'")}')">
+                                    ${isStart ? '🏢' : isEnd ? '🏠' : i + 1}
+                                </div>
+                                <div class="stop-address-label">
+                                    ${isStart ? 'ÁREA DE CARGA' : isEnd ? 'HOGAR' : stop}
+                                </div>
                             </div>
                         `;
                     }).join('')}
