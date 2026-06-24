@@ -148,7 +148,7 @@ function scanLiveFrame() {
 const API_KEY = 'eyJvcmciOiI1YjNjZTM1OTc4NTExMTAwMDFjZjYyNDgiLCJpZCI6IjEzZWNmZjAwZWNiYTQ4YjE5MTQ3MGZhZTFhZGMyY2E5IiwiaCI6Im11cm11cjY0In0='; 
 
 async function geocodeAddress(address) {
-    const response = await fetch(`https://api.openrouteservice.org/geocode/search?api_key=${API_KEY}&text=${encodeURIComponent(address + ', Mosquera, Colombia')}`);
+    const response = await fetch(`https://api.openrouteservice.org/geocode/search?api_key=${API_KEY}&text=${encodeURIComponent(address + ', Colombia')}`);
     const data = await response.json();
     if (data.features && data.features.length > 0) return data.features[0].geometry.coordinates;
     throw new Error(`No se encontró: ${address}`);
@@ -266,7 +266,7 @@ async function calculateDistance(from, to) {
 }
 
 function navigateTo(address) {
-    const url = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(address + ', Mosquera, Colombia')}`;
+    const url = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(address + ', Colombia')}`;
     window.open(url, '_blank');
 }
 // Gemini API Configuration
