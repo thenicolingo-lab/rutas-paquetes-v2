@@ -365,7 +365,7 @@ async function displayRoute(stops) {
                         `).join('')}
                     </div>
                     
-                    <!-- Center content - Transparent, Dark Purple Text -->
+                    <!-- Center content - Pure Black Text -->
                     <div class="circle-center">
                         <div class="center-icon">📦</div>
                         <div class="center-text">RUTA<br>MÁS<br>EFICIENTE</div>
@@ -373,43 +373,55 @@ async function displayRoute(stops) {
                         <div class="center-hand-icon">☝️ → 📍</div>
                     </div>
 
-                    <!-- SVG Rotating Ring with Proper Arrowhead -->
+                    <!-- SVG Rotating Ring with Smaller Arrow -->
                     <svg class="rotating-ring-svg" viewBox="0 0 100 100" preserveAspectRatio="xMidYMid meet">
                         <g class="rotate-pulse-group">
-                            <!-- Arc from top (50,4) clockwise to right (96,50) -->
+                            <!-- Arc -->
                             <path d="M 50 4 A 46 46 0 0 1 96 50" 
                                   fill="none" 
                                   stroke="#7c3aed" 
-                                  stroke-width="2.5" 
+                                  stroke-width="1.5" 
                                   stroke-linecap="round" 
-                                  filter="drop-shadow(0 0 6px #a855f7)" />
-                            <!-- Arrowhead at (96,50) pointing DOWN (clockwise direction) -->
-                            <polygon points="96,58 89,44 103,44" 
+                                  filter="drop-shadow(0 0 4px #a855f7)" />
+                            <!-- Smaller Arrowhead -->
+                            <polygon points="96,54 90,46 102,46" 
                                      fill="#a855f7" 
-                                     filter="drop-shadow(0 0 6px #7c3aed)" />
+                                     filter="drop-shadow(0 0 4px #7c3aed)" />
                         </g>
                     </svg>
                     
-                    <!-- Stop Points -->
+                    <!-- Stop Numbers (On the circle) -->
                     ${stops.map((stop, i) => {
                         const angle = (i * (360 / stops.length)) - 90;
-                        const radius = 42; // Slightly inside so labels have room outside
+                        const radius = 42; 
                         const x = 50 + radius * Math.cos(angle * Math.PI / 180);
                         const y = 50 + radius * Math.sin(angle * Math.PI / 180);
                         
                         const isStart = i === 0;
                         const isEnd = i === stops.length - 1;
                         
-                        const displayAddress = stop;
-                        
                         return `
                             <div class="route-stop-point" style="left: ${x}%; top: ${y}%;" onclick="navigateTo('${stop.replace(/'/g, "\\'")}')">
                                 <div class="stop-number ${isStart ? 'start' : ''} ${isEnd ? 'end' : ''}">
                                     ${isStart ? '🏢' : isEnd ? '🏠' : i + 1}
                                 </div>
-                                <div class="stop-address-label">
-                                    ${isStart ? 'ÁREA DE CARGA' : isEnd ? 'HOGAR' : displayAddress}
-                                </div>
+                            </div>
+                        `;
+                    }).join('')}
+
+                    <!-- Address Labels (Pushed outside the circle) -->
+                    ${stops.map((stop, i) => {
+                        const angle = (i * (360 / stops.length)) - 90;
+                        const labelRadius = 62; // Pushed further out
+                        const labelX = 50 + labelRadius * Math.cos(angle * Math.PI / 180);
+                        const labelY = 50 + labelRadius * Math.sin(angle * Math.PI / 180);
+                        
+                        const isStart = i === 0;
+                        const isEnd = i === stops.length - 1;
+                        
+                        return `
+                            <div class="stop-address-label" style="left: ${labelX}%; top: ${labelY}%;">
+                                ${isStart ? 'ÁREA DE CARGA' : isEnd ? 'HOGAR' : stop}
                             </div>
                         `;
                     }).join('')}
