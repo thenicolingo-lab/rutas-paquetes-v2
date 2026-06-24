@@ -107,13 +107,12 @@
         @keyframes pulseLine { 0%, 100% { opacity: 1; filter: drop-shadow(0 0 8px #a855f7); } 50% { opacity: 0.2; filter: drop-shadow(0 0 2px #7c3aed); } }
 
 
-/* Stop Wrapper - positioned directly on the circle */
+/* Stop Wrapper - covers the whole circle area so children can use % positioning */
 .stop-wrapper { 
-    position: absolute;
-    left: calc(var(--stop-x) * 1%);
-    top: calc(var(--stop-y) * 1%);
-    transform: translate(-50%, -50%);
-    pointer-events: none;
+    position: absolute; 
+    top: 0; left: 0; 
+    width: 100%; height: 100%; 
+    pointer-events: none; /* Lets clicks pass through empty space */
     z-index: 20; 
 }
         .stop-wrapper:hover .stop-address-label {
@@ -124,53 +123,38 @@
     box-shadow: 0 6px 25px rgba(0, 0, 0, 0.8), 0 0 30px rgba(124, 58, 237, 0.7);
 }
         
+/* Stop Number - positioned on the ring */
 .stop-number { 
-    width: 48px; 
-    height: 48px; 
+    position: absolute; 
+    left: calc(var(--stop-x) * 1%); 
+    top: calc(var(--stop-y) * 1%); 
+    transform: translate(-50%, -50%); 
+    pointer-events: auto; /* Re-enables clicks for the circle */
+    cursor: pointer;
+    width: 48px; height: 48px; 
     border-radius: 50%; 
     background: linear-gradient(135deg, #ff4757, #ff6348); 
     color: white; 
-    display: flex; 
-    align-items: center; 
-    justify-content: center; 
-    font-weight: bold; 
-    font-size: 1.2em; 
+    display: flex; align-items: center; justify-content: center; 
+    font-weight: bold; font-size: 1.2em; 
     box-shadow: 0 4px 20px rgba(255, 71, 87, 0.7), 0 0 30px rgba(255, 71, 87, 0.5), inset 0 0 10px rgba(255, 255, 255, 0.3); 
     border: 4px solid white; 
     text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3); 
     transition: all 0.3s ease;
     z-index: 25;
-    pointer-events: auto;
-    cursor: pointer;
-    margin: 0 auto;
-}
-.stop-number:hover {
-    transform: scale(1.15);
-    z-index: 30;
-}
-.stop-number.start { 
-    background: linear-gradient(135deg, #2ed573, #7bed9f); 
-    box-shadow: 0 4px 20px rgba(46, 213, 115, 0.7), 0 0 30px rgba(46, 213, 115, 0.5); 
-    font-size: 1.4em; 
 }
 
-.stop-number.end { 
-    background: linear-gradient(135deg, #ffa502, #ffc107); 
-    box-shadow: 0 4px 20px rgba(255, 165, 2, 0.7), 0 0 30px rgba(255, 165, 2, 0.5); 
-    font-size: 1.4em; 
+.stop-number:hover {
+    transform: translate(-50%, -50%) scale(1.15);
+    z-index: 30;
 }
         
-        /* Updated Address Labels with dynamic positioning */
-/* Address Labels - pushed radially outward with cushion */
-/* Address Labels - positioned with radial offset */
+/* Address Labels - positioned radially outward using circle dimensions */
 .stop-address-label { 
-    position: absolute;
-    left: 50%;
-    top: 50%;
-    transform: translate(
-        calc((var(--label-x) - var(--stop-x)) * 1%), 
-        calc((var(--label-y) - var(--stop-y)) * 1%)
-    );
+    position: absolute; 
+    left: calc(var(--label-x) * 1%); 
+    top: calc(var(--label-y) * 1%); 
+    transform: translate(-50%, -50%); 
     background: rgba(0, 0, 0, 0.9); 
     color: white; 
     padding: 8px 14px; 
@@ -190,11 +174,9 @@
     pointer-events: none;
     transition: all 0.3s ease;
 }
+
 .stop-wrapper:hover .stop-address-label {
-    transform: translate(
-        calc((var(--label-x) - var(--stop-x)) * 1.15%), 
-        calc((var(--label-y) - var(--stop-y)) * 1.15%)
-    ) scale(1.05);
+    transform: translate(-50%, -50%) scale(1.05);
     box-shadow: 0 8px 30px rgba(0, 0, 0, 0.9), 0 0 40px rgba(124, 58, 237, 0.8);
     z-index: 31;
 }
