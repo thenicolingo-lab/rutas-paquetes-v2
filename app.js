@@ -387,13 +387,13 @@ async function displayRoute(stops) {
                         const angleRad = angle * Math.PI / 180;
                         
                         // Position for the small circle (inside the ring)
-                        const circleRadius = 42; 
+                        const circleRadius = 100; 
                         const stopX = 50 + circleRadius * Math.cos(angleRad);
                         const stopY = 50 + circleRadius * Math.sin(angleRad);
                         
                         // Position for label (pushed well outside the ring)
                         // 85% radius puts them clearly outside the 50% border
-                        const labelRadius = 10; 
+                        const labelRadius = 68; 
                         const labelX = 50 + labelRadius * Math.cos(angleRad);
                         const labelY = 50 + labelRadius * Math.sin(angleRad);
                         
