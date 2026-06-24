@@ -1,7 +1,7 @@
 // ==========================================
 // CONFIGURATION
 // ==========================================
-const GEMINI_API_KEY = 'AQ.Ab8RN6KvwSyB0lGZH3yDZROGD_VkrIUhEntz9qTYBHElxnqimw'; // Your Gemini API Key
+const GEMINI_API_KEY = 'AQ.Ab8RN6KaFhVN1L7pxii-L_cJAf8nK8vjoYcuHX-HaTBqS2t2sw'; // Your Gemini API Key
 const GEMINI_MODEL = 'gemini-1.5-flash';
 const API_KEY = 'eyJvcmciOiI1YjNjZTM1OTc4NTExMTAwMDFjZjYyNDgiLCJpZCI6IjEzZWNmZjAwZWNiYTQ4YjE5MTQ3MGZhZTFhZGMyY2E5IiwiaCI6Im11cm11cjY0In0='; // OpenRouteService API Key
 
