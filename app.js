@@ -350,7 +350,7 @@ async function displayRoute(stops) {
     const container = document.getElementById('optimized-stops');
     container.innerHTML = "";
     document.getElementById('route-results').style.display = "block";
-
+    
     const routeHTML = `
         <div class="circular-route-container">
             <div class="route-circle-wrapper">
@@ -368,27 +368,30 @@ async function displayRoute(stops) {
                     <!-- Center content -->
                     <div class="circle-center">
                         <div class="center-icon">📦</div>
-                        <div class="center-text">RUTA<br>MÁS<br>EFICIENTE</div>
-                        <div class="center-subtitle">Toca cualquier punto<br>para ir a la dirección<br>en <span class="black-highlight">Google Maps</span></div>
+                        <div class="center-text">RUTA <br>MÁS <br>EFICIENTE</div>
+                        <div class="center-subtitle">Toca cualquier punto <br>para ir a la dirección <br>en <span class="black-highlight">Google Maps</span></div>
                         <div class="center-hand-icon">☝️ → 📍</div>
                     </div>
 
                     <!-- SVG Rotating Ring -->
                     <svg class="rotating-ring-svg" viewBox="0 0 100 100" preserveAspectRatio="xMidYMid meet">
                         <g class="rotate-pulse-group">
-                            <path d="M 50 4 A 46 46 0 0 1 96 50" fill="none" stroke="#7c3aed" stroke-width="1.5" stroke-linecap="round" filter="drop-shadow(0 0 4px #a855f7)" />
-                            <polygon points="96,54 90,46 102,46" fill="#a855f7" filter="drop-shadow(0 0 4px #7c3aed)" />
+                            <path d="M 50 4 A 46 46 0 0 1 96 50" fill="none" stroke="#7c3aed" stroke-width="1.5" stroke-linecap="round" filter="drop-shadow(0 0 4px #a855f7)"/>
+                            <polygon points="96,54 90,46 102,46" fill="#a855f7" filter="drop-shadow(0 0 4px #7c3aed)"/>
                         </g>
                     </svg>
                     
                     <!-- Combined Stop Numbers and Labels -->
                     ${stops.map((stop, i) => {
                         const angle = (i * (360 / stops.length)) - 90;
-                        const radius = 42; 
+                        
+                        // 1. Decreased radius for small circles to give more breathing room
+                        const radius = 35; 
                         const x = 50 + radius * Math.cos(angle * Math.PI / 180);
                         const y = 50 + radius * Math.sin(angle * Math.PI / 180);
                         
-                        const labelRadius = 68;
+                        // 2. Increased labelRadius to push text boxes further away radially
+                        const labelRadius = 82; 
                         const labelX = 50 + labelRadius * Math.cos(angle * Math.PI / 180);
                         const labelY = 50 + labelRadius * Math.sin(angle * Math.PI / 180);
                         
@@ -398,7 +401,7 @@ async function displayRoute(stops) {
                         return `
                             <div class="stop-wrapper" style="--stop-x: ${x}; --stop-y: ${y}; --label-x: ${labelX}; --label-y: ${labelY};">
                                 <div class="stop-number ${isStart ? 'start' : ''} ${isEnd ? 'end' : ''}" onclick="navigateTo('${stop.replace(/'/g, "\\'")}')">
-                                    ${isStart ? '🏢' : isEnd ? '🏠' : i + 1}
+                                    ${isStart ? '🏢' : isEnd ? '' : i + 1}
                                 </div>
                                 <div class="stop-address-label">
                                     ${isStart ? 'ÁREA DE CARGA' : isEnd ? 'HOGAR' : stop}
@@ -410,7 +413,7 @@ async function displayRoute(stops) {
             </div>
         </div>
     `;
-    
+
     container.innerHTML = routeHTML;
 }
 async function calculateDistance(from, to) {
