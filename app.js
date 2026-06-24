@@ -387,7 +387,7 @@ async function displayRoute(stops) {
                         const angleRad = angle * Math.PI / 180;
                         
                         // Position for the small circle (inside the ring)
-                        const circleRadius = 100; 
+                        const circleRadius = 42; 
                         const stopX = 50 + circleRadius * Math.cos(angleRad);
                         const stopY = 50 + circleRadius * Math.sin(angleRad);
                         
