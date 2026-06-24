@@ -172,7 +172,7 @@
     75% { transform: translate(-8px, -8px) scale(0.8); opacity: 0.8; }
 }
 
-/* Center Content - Transparent, Dark Purple */
+/* Center Content - Pure Black Text */
 .circle-center {
     position: absolute;
     top: 50%;
@@ -180,18 +180,14 @@
     transform: translate(-50%, -50%);
     text-align: center;
     z-index: 10;
-    color: white;
     padding: 20px;
     background: transparent;
-    border: none;
-    box-shadow: none;
 }
 
 .center-icon {
     font-size: 3em;
     margin-bottom: 10px;
     animation: pulse 2s infinite;
-    filter: drop-shadow(0 0 10px rgba(255, 255, 255, 0.5));
 }
 
 .center-text {
@@ -199,32 +195,26 @@
     font-weight: 900;
     line-height: 1.2;
     margin-bottom: 10px;
-    color: #581c87; /* Very dark purple */
-    text-shadow: 
-        0 0 20px #a855f7,
-        0 0 40px #7c3aed,
-        0 0 60px #6d28d9,
-        0 0 80px #581c87;
+    color: #000000; /* Pure Black */
+    text-shadow: none;
+    -webkit-text-stroke: 0;
     letter-spacing: 1px;
-    -webkit-text-stroke: 0.5px #4c1d95;
 }
 
 .center-subtitle {
     font-size: 0.85em;
-    opacity: 0.95;
     line-height: 1.5;
     margin-bottom: 8px;
-    color: #4c1d95; /* Dark purple */
-    text-shadow: 0 0 12px #a855f7, 0 0 24px #7c3aed;
+    color: #000000; /* Pure Black */
+    text-shadow: none;
     font-weight: 600;
 }
 
 .black-highlight {
-    color: #000000 !important;
+    color: #000000;
     font-weight: 900;
     text-shadow: none;
-    -webkit-text-stroke: 0.3px #000;
-    background: rgba(255, 255, 255, 0.7);
+    background: rgba(255, 255, 255, 0.8);
     padding: 1px 6px;
     border-radius: 4px;
 }
@@ -232,10 +222,9 @@
 .center-hand-icon {
     font-size: 1.3em;
     margin-top: 8px;
-    filter: drop-shadow(0 0 5px rgba(255, 255, 255, 0.5));
 }
 
-/* SVG Rotating Ring */
+/* SVG Rotating Ring - Slower */
 .rotating-ring-svg {
     position: absolute;
     top: -6%;
@@ -249,7 +238,8 @@
 
 .rotate-pulse-group {
     transform-origin: 50% 50%;
-    animation: rotateClockwise 8s linear infinite, pulseLine 2s ease-in-out infinite;
+    /* Rotation: 15s (slower), Pulse: 4s (slower) */
+    animation: rotateClockwise 15s linear infinite, pulseLine 4s ease-in-out infinite;
 }
 
 @keyframes rotateClockwise {
@@ -260,7 +250,7 @@
 @keyframes pulseLine {
     0%, 100% { 
         opacity: 1; 
-        filter: drop-shadow(0 0 10px #a855f7); 
+        filter: drop-shadow(0 0 8px #a855f7); 
     }
     50% { 
         opacity: 0.2; 
@@ -268,7 +258,7 @@
     }
 }
 
-/* Stop Points - Clean flex layout with proper spacing */
+/* Stop Numbers - On the circle */
 .route-stop-point {
     position: absolute;
     left: 0;
@@ -277,10 +267,6 @@
     cursor: pointer;
     transition: all 0.3s ease;
     z-index: 20;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 14px; /* More space between number and label */
 }
 
 .route-stop-point:hover {
@@ -306,7 +292,6 @@
     position: relative;
     z-index: 25;
     text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
-    flex-shrink: 0;
 }
 
 .stop-number.start {
@@ -321,8 +306,10 @@
     font-size: 1.4em;
 }
 
-/* Address Labels - Flows naturally below number with gap */
+/* Address Labels - Pushed Outside */
 .stop-address-label {
+    position: absolute;
+    transform: translate(-50%, -50%);
     background: rgba(0, 0, 0, 0.9);
     color: white;
     padding: 6px 12px;
