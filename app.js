@@ -1,7 +1,7 @@
 // ==========================================
 // CONFIGURATION
 // ==========================================
-const GROQ_API_KEY = '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'; // Pega tu key de https://console.groq.com/
+const GROQ_API_KEY = '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'; // Your Groq Key
 const API_KEY = 'eyJvcmciOiI1YjNjZTM1OTc4NTExMTAwMDFjZjYyNDgiLCJpZCI6IjEzZWNmZjAwZWNiYTQ4YjE5MTQ3MGZhZTFhZGMyY2E5IiwiaCI6Im11cm11cjY0In0=';
 
 // ==========================================
@@ -13,7 +13,6 @@ window.onload = async function() {
         document.getElementById('gate-title').innerText = "🔐 Ingresa tu código";
         document.getElementById('gate-btn').innerText = "Desbloquear";
     }
-
     const sections = document.querySelectorAll('section');
     sections.forEach((section, index) => {
         section.style.animationDelay = `${index * 0.1}s`;
@@ -58,12 +57,10 @@ function showSuccessMessage(message) {
 function unlockApp() {
     document.getElementById('gate-section').style.display = 'none';
     document.getElementById('main-app').style.display = 'block';
-    
     const sections = document.querySelectorAll('#main-app section');
     sections.forEach((section, index) => {
         section.style.animationDelay = `${index * 0.1}s`;
     });
-    
     updateDropdown('pickup');
     updateDropdown('final');
 }
@@ -163,8 +160,8 @@ if (imageInput) {
 }
 
 async function analyzeWithGroq() {
-    if (!GROQ_API_KEY || GROQ_API_KEY === 'TU_API_KEY_DE_GROQ_AQUI') {
-        alert('⚠️ Primero obtén tu API Key gratis de https://console.groq.com/ y pégala en app.js');
+    if (!GROQ_API_KEY) {
+        alert('⚠️ Falta la API Key de Groq.');
         return;
     }
 
@@ -208,7 +205,6 @@ Dirección 1, Municipio; Dirección 2, Municipio; Dirección 3, Municipio`
             ]
         }];
 
-        // Add each image
         for (const file of uploadedImages) {
             const base64 = await imageToBase64(file);
             messages[0].content.push({
@@ -379,7 +375,7 @@ async function displayRoute(stops) {
         step.innerHTML = `
             <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap;">
                 <span>
-                    <strong>${i === 0 ? '🏁' : i === stops.length - 1 ? '' : '📦'} ${i + 1}.</strong> 
+                    <strong>${i === 0 ? '🏁' : i === stops.length - 1 ? '🏆' : '📦'} ${i + 1}.</strong> 
                     ${stops[i]}
                     ${distanceBadge}
                 </span>
