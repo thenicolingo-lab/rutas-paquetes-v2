@@ -381,38 +381,27 @@ async function displayRoute(stops) {
                         </g>
                     </svg>
                     
-                    <!-- Combined Stop Numbers and Labels -->
+                    <!-- Stops and Labels with radial offset -->
                     ${stops.map((stop, i) => {
                         const angle = (i * (360 / stops.length)) - 90;
                         const angleRad = angle * Math.PI / 180;
                         
                         // Position for the small circle (on the ring)
-                        const circleRadius = 38;
-                        const x = 50 + circleRadius * Math.cos(angleRad);
-                        const y = 50 + circleRadius * Math.sin(angleRad);
+                        const circleRadius = 40;
+                        const stopX = 50 + circleRadius * Math.cos(angleRad);
+                        const stopY = 50 + circleRadius * Math.sin(angleRad);
                         
-                        // Calculate directional offset for label
-                        // This pushes labels further away based on their angle
-                        const baseOffset = 70; // Base distance from center
-                        const cushionFactor = 1.3; // Extra cushion multiplier
-                        
-                        // Calculate offset with directional awareness
-                        const cosAngle = Math.cos(angleRad);
-                        const sinAngle = Math.sin(angleRad);
-                        
-                        // Apply cushion based on position (quadrant-aware)
-                        const offsetX = 50 + (cosAngle * baseOffset * cushionFactor);
-                        const offsetY = 50 + (sinAngle * baseOffset * cushionFactor);
-                        
-                        // Calculate the actual offset from center (50, 50)
-                        const labelOffsetX = (offsetX - 50) * 100; // Convert to percentage
-                        const labelOffsetY = (offsetY - 50) * 100;
+                        // Position for label - pushed MUCH further outward radially
+                        // This creates the cushion effect - right side goes right, left goes left, etc.
+                        const labelRadius = 85;
+                        const labelX = 50 + labelRadius * Math.cos(angleRad);
+                        const labelY = 50 + labelRadius * Math.sin(angleRad);
                         
                         const isStart = i === 0;
                         const isEnd = i === stops.length - 1;
                         
                         return `
-                            <div class="stop-wrapper" style="--stop-x: ${x}; --stop-y: ${y}; --label-offset-x: ${labelOffsetX}; --label-offset-y: ${labelOffsetY};">
+                            <div class="stop-wrapper" style="--stop-x: ${stopX}; --stop-y: ${stopY}; --label-x: ${labelX}; --label-y: ${labelY};">
                                 <div class="stop-number ${isStart ? 'start' : ''} ${isEnd ? 'end' : ''}" onclick="navigateTo('${stop.replace(/'/g, "\\'")}')">
                                     ${isStart ? '🏢' : isEnd ? '🏠' : i + 1}
                                 </div>
