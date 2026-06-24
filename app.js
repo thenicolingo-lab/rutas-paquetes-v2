@@ -1,9 +1,7 @@
 // ==========================================
 // CONFIGURATION
 // ==========================================
-const GEMINI_API_KEY = 'AQ.Ab8RN6KvwSyB0lGZH3yDZROGD_VkrIUhEntz9qTYBHElxnqimw'; // Your Gemini API Key
-const GEMINI_MODEL = 'gemini-1.5-flash';
-const API_KEY = 'eyJvcmciOiI1YjNjZTM1OTc4NTExMTAwMDFjZjYyNDgiLCJpZCI6IjEzZWNmZjAwZWNiYTQ4YjE5MTQ3MGZhZTFhZGMyY2E5IiwiaCI6Im11cm11cjY0In0='; // OpenRouteService API Key
+const API_KEY = 'eyJvcmciOiI1YjNjZTM1OTc4NTExMTAwMDFjZjYyNDgiLCJpZCI6IjEzZWNmZjAwZWNiYTQ4YjE5MTQ3MGZhZTFhZGMyY2E5IiwiaCI6Im11cm11cjY0In0=';
 
 // ==========================================
 // INITIALIZATION
@@ -15,9 +13,6 @@ window.onload = async function() {
         document.getElementById('gate-btn').innerText = "Desbloquear";
     }
 
-    // Camera setup removed since you don't want the scanner option
-
-    // Add stagger animation to sections
     const sections = document.querySelectorAll('section');
     sections.forEach((section, index) => {
         section.style.animationDelay = `${index * 0.1}s`;
@@ -138,6 +133,188 @@ function addStopToList(text) {
 }
 
 // ==========================================
+// 📸 TESSERACT OCR - AI SCANNER (FREE!)
+// ==========================================
+let uploadedImages = [];
+
+// Handle image upload
+const imageInput = document.getElementById('image-input');
+if (imageInput) {
+    imageInput.addEventListener('change', function(e) {
+        const files = Array.from(e.target.files);
+        uploadedImages = [...uploadedImages, ...files];
+        
+        document.getElementById('file-count').innerText = `${uploadedImages.length} fotos seleccionadas`;
+        document.getElementById('analyze-btn').disabled = uploadedImages.length === 0;
+        
+        const previewContainer = document.getElementById('preview-container');
+        previewContainer.innerHTML = '';
+        
+        uploadedImages.forEach((file) => {
+            const reader = new FileReader();
+            reader.onload = function(event) {
+                const img = document.createElement('img');
+                img.src = event.target.result;
+                previewContainer.appendChild(img);
+            };
+            reader.readAsDataURL(file);
+        });
+    });
+}
+
+// Analyze images with Tesseract OCR (FREE - No API Key!)
+async function analyzeWithGemini() {
+    const btn = document.getElementById('analyze-btn');
+    const originalText = btn.innerText;
+    btn.innerHTML = '<span class="loading"></span> Analizando...';
+    btn.disabled = true;
+
+    try {
+        let allAddresses = [];
+
+        // Process each image
+        for (let i = 0; i < uploadedImages.length; i++) {
+            const file = uploadedImages[i];
+            
+            // Show progress
+            btn.innerText = `⏳ Procesando ${i + 1}/${uploadedImages.length}...`;
+            
+            const result = await Tesseract.recognize(file, 'spa', {
+                logger: m => console.log(m)
+            });
+            
+            const text = result.data.text;
+            
+            // Extract addresses from text using regex patterns
+            const addresses = extractAddressesFromText(text);
+            allAddresses = allAddresses.concat(addresses);
+        }
+
+        // Remove duplicates and format
+        const uniqueAddresses = [...new Set(allAddresses)];
+        
+        if (uniqueAddresses.length === 0) {
+            throw new Error('No se encontraron direcciones válidas en las imágenes');
+        }
+
+        // Display results
+        const formattedText = uniqueAddresses.join('; ');
+        document.getElementById('extracted-addresses').value = formattedText;
+        document.getElementById('ai-result-box').style.display = 'block';
+        showSuccessMessage(`✅ Se extrajeron ${uniqueAddresses.length} dirección(es)`);
+
+    } catch (error) {
+        alert('Error al analizar: ' + error.message);
+        console.error(error);
+    } finally {
+        btn.innerText = originalText;
+        btn.disabled = false;
+    }
+}
+
+// Extract addresses from OCR text using patterns
+function extractAddressesFromText(text) {
+    const addresses = [];
+    const lines = text.split('\n');
+    
+    // Patterns for Colombian addresses (Funza/Mosquera)
+    const patterns = [
+        /(?:Calle|Cl|Carrera|Cra|Diagonal|Dia|Transversal|Tr|Avenida|Av|Crr)\s*\d+[A-Za-z]*\s*(?:#|-)?\s*\d+\s*(?:[-–]\s*\d+)?/gi,
+        /(?:Funza|Mosquera)/gi
+    ];
+    
+    lines.forEach(line => {
+        line = line.trim();
+        if (line.length < 5) return;
+        
+        // Check if line contains address patterns
+        const hasStreet = /(?:Calle|Cl|Carrera|Cra|Diagonal|Dia|Transversal|Tr|Avenida|Av|Crr)/i.test(line);
+        const hasNumber = /\d/.test(line);
+        const hasCity = /(?:Funza|Mosquera)/i.test(line);
+        
+        if (hasStreet && hasNumber) {
+            // Clean and format the address
+            let address = cleanAddress(line);
+            
+            // Add city if not present
+            if (hasCity && !address.toLowerCase().includes('funza') && !address.toLowerCase().includes('mosquera')) {
+                const city = line.match(/(?:Funza|Mosquera)/i)[0];
+                address += `, ${city}`;
+            } else if (!hasCity) {
+                // Default to Funza if no city mentioned
+                address += ', Funza';
+            }
+            
+            if (address.length > 10) {
+                addresses.push(address);
+            }
+        }
+    });
+    
+    return addresses;
+}
+
+// Clean and standardize address format
+function cleanAddress(text) {
+    let addr = text;
+    
+    // Remove common unwanted words
+    const removeWords = [
+        'nombre:', 'destinatario:', 'telefono:', 'tel:', 'cel:', 
+        'barrio:', 'referencia:', 'cp:', 'codigo:', 'postal:',
+        'cundinamarca', 'colombia'
+    ];
+    
+    removeWords.forEach(word => {
+        const regex = new RegExp(word, 'gi');
+        addr = addr.replace(regex, '');
+    });
+    
+    // Standardize street types
+    addr = addr.replace(/\bCl\b/gi, 'Calle');
+    addr = addr.replace(/\bCra\b/gi, 'Carrera');
+    addr = addr.replace(/\bAv\b/gi, 'Avenida');
+    addr = addr.replace(/\bDia\b/gi, 'Diagonal');
+    
+    // Clean up extra spaces
+    addr = addr.replace(/\s+/g, ' ').trim();
+    
+    // Remove special characters except # and -
+    addr = addr.replace(/[^\w\s#\-,\.]/g, '');
+    
+    return addr;
+}
+
+function copyAddresses() {
+    const textarea = document.getElementById('extracted-addresses');
+    textarea.select();
+    document.execCommand('copy');
+    showSuccessMessage('📋 Direcciones copiadas');
+}
+
+function loadToRoute() {
+    const addresses = document.getElementById('extracted-addresses').value;
+    const addressList = addresses.split(';').map(addr => addr.trim()).filter(addr => addr);
+    
+    addressList.forEach(addr => {
+        addStopToList(addr);
+    });
+    
+    showSuccessMessage(`✅ ${addressList.length} direcciones cargadas`);
+    document.getElementById('ai-result-box').style.display = 'none';
+}
+
+function clearAIResults() {
+    document.getElementById('extracted-addresses').value = '';
+    document.getElementById('ai-result-box').style.display = 'none';
+    uploadedImages = [];
+    document.getElementById('image-input').value = '';
+    document.getElementById('file-count').innerText = '0 fotos seleccionadas';
+    document.getElementById('preview-container').innerHTML = '';
+    document.getElementById('analyze-btn').disabled = true;
+}
+
+// ==========================================
 // ROUTE OPTIMIZATION
 // ==========================================
 async function geocodeAddress(address) {
@@ -159,7 +336,6 @@ async function calculateRoute() {
     }
 
     try {
-        // FIXED: Select the correct button instead of the first .btn-green
         const btn = document.querySelector('button[onclick="calculateRoute()"]');
         const originalText = btn.innerText;
         btn.innerHTML = '<span class="loading"></span> Calculando...';
@@ -183,7 +359,7 @@ async function calculateRoute() {
         if (!optData.routes || optData.routes.length === 0) throw new Error("No se pudo calcular la ruta.");
 
         const sorted = optData.routes[0].steps.map(s => s.type === 'job' ? addresses[s.id - 1] : (s.type === 'start' ? pickup : final));
-        await displayRoute(sorted); // Added await because displayRoute is now async
+        await displayRoute(sorted);
         
         btn.innerText = originalText;
         btn.disabled = false;
@@ -262,156 +438,4 @@ async function calculateDistance(from, to) {
 function navigateTo(address) {
     const url = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(address + ', Colombia')}`;
     window.open(url, '_blank');
-}
-
-// ==========================================
-// GEMINI AI SCANNER FUNCTIONS
-// ==========================================
-let uploadedImages = [];
-
-const imageInput = document.getElementById('image-input');
-if (imageInput) {
-    imageInput.addEventListener('change', function(e) {
-        const files = Array.from(e.target.files);
-        uploadedImages = [...uploadedImages, ...files];
-        
-        document.getElementById('file-count').innerText = `${uploadedImages.length} fotos seleccionadas`;
-        document.getElementById('analyze-btn').disabled = uploadedImages.length === 0;
-        
-        const previewContainer = document.getElementById('preview-container');
-        previewContainer.innerHTML = '';
-        
-        uploadedImages.forEach((file) => {
-            const reader = new FileReader();
-            reader.onload = function(event) {
-                const img = document.createElement('img');
-                img.src = event.target.result;
-                previewContainer.appendChild(img);
-            };
-            reader.readAsDataURL(file);
-        });
-    });
-}
-
-async function imageToBase64(file) {
-    return new Promise((resolve, reject) => {
-        const reader = new FileReader();
-        reader.onload = () => resolve(reader.result.split(',')[1]);
-        reader.onerror = reject;
-        reader.readAsDataURL(file);
-    });
-}
-
-async function analyzeWithGemini() {
-    if (!GEMINI_API_KEY || GEMINI_API_KEY === 'YOUR_GEMINI_API_KEY_HERE') {
-        alert('⚠️ Falta la API Key de Gemini.');
-        return;
-    }
-
-    const btn = document.getElementById('analyze-btn');
-    const originalText = btn.innerText;
-    btn.innerHTML = '<span class="loading"></span> Analizando...';
-    btn.disabled = true;
-
-    try {
-        const parts = [{
-            text: `# ROLE & TASK
-Actúa como un asistente de logística automatizado experto en geocodificación de Colombia. Tu tarea es analizar las imágenes de guías de envío adjuntas, limpiar las inconsistencias de texto y extraer exclusivamente la dirección estructurada (Nomenclatura urbana + Municipio).
-
-# TARGET CITIES
-- Funza
-- Mosquera
-*Nota: Trata "Funza" y "Mosquera" estrictamente como el municipio/ciudad de destino. Nunca los ignores, nunca los elimines y nunca los confundas con nombres de barrios.*
-
-# DATA FILTERING RULES
-- [KEEP] Solo extrae: Tipo de vía (Calle, Carrera, Diagonal, Av, Cl, Cra, etc.), las letras/números de la nomenclatura urbana y el Municipio de destino (Funza o Mosquera).
-- [DELETE] Elimina por completo de la salida: Nombres de personas, teléfonos, códigos postales (C.P.), nombres de departamentos (Cundinamarca), nombres de barrios (ej: "La Cita", "La Chaguya") y referencias/descripciones de ubicación (ej: "casa esquinera", "primer piso", "local", "asadero").
-
-# DATA STANDARDIZATION & CLEANING (ANTI-ERROR)
-Si la etiqueta contiene errores de digitación o inconsistencias del usuario, corrígelos automáticamente antes de dar la salida:
-1. Elimina duplicaciones de palabras clave de vías (ej: Si dice "Calle Calle 10" o "Cl Calle 10", unifícalo a "Calle 10").
-2. Corrige abreviaciones confusas para que mantengan la estructura estándar: Tipo de vía + Número # Número - Número (ej: "carrera 10b#10-02").
-3. Si el municipio (Funza/Mosquera) aparece pegado a otras palabras o repetido en la sección de departamento (como "FUNZA/CUNDINAMARCA"), extrae únicamente el nombre limpio del municipio separado por una coma.
-
-# FORMATTING SPECIFICATIONS
-- Entrega TODO el resultado final en una única línea de texto continuo.
-- Separa cada dirección extraída utilizando únicamente un punto y coma (;).
-- No agregues saludos, introducciones, viñetas, saltos de línea ni texto aclaratorio. La salida debe ser puramente de datos crudos limpios.
-
-# OUTPUT FORMAT TARGET
-Dirección 1, Municipio; Dirección 2, Municipio; Dirección 3, Municipio.... and so on.`
-        }];
-
-        for (const file of uploadedImages) {
-            const base64 = await imageToBase64(file);
-            parts.push({
-                inline_data: {
-                    mime_type: file.type,
-                    data: base64
-                }
-            });
-        }
-
-        const response = await fetch(
-            `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent?key=${GEMINI_API_KEY}`,
-            {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    contents: [{ parts }],
-                    generationConfig: {
-                        temperature: 0.1,
-                        maxOutputTokens: 2048
-                    }
-                })
-            }
-        );
-
-        const data = await response.json();
-        
-        if (data.candidates && data.candidates[0] && data.candidates[0].content && data.candidates[0].content.parts) {
-            const extractedText = data.candidates[0].content.parts[0].text;
-            document.getElementById('extracted-addresses').value = extractedText;
-            document.getElementById('ai-result-box').style.display = 'block';
-            showSuccessMessage('✅ Análisis completado');
-        } else {
-            throw new Error('No se pudo procesar las imágenes');
-        }
-
-    } catch (error) {
-        alert('Error al analizar: ' + error.message);
-        console.error(error);
-    } finally {
-        btn.innerText = originalText;
-        btn.disabled = false;
-    }
-}
-
-function copyAddresses() {
-    const textarea = document.getElementById('extracted-addresses');
-    textarea.select();
-    document.execCommand('copy');
-    showSuccessMessage('📋 Direcciones copiadas');
-}
-
-function loadToRoute() {
-    const addresses = document.getElementById('extracted-addresses').value;
-    const addressList = addresses.split(';').map(addr => addr.trim()).filter(addr => addr);
-    
-    addressList.forEach(addr => {
-        addStopToList(addr);
-    });
-    
-    showSuccessMessage(`✅ ${addressList.length} direcciones cargadas`);
-    document.getElementById('ai-result-box').style.display = 'none';
-}
-
-function clearAIResults() {
-    document.getElementById('extracted-addresses').value = '';
-    document.getElementById('ai-result-box').style.display = 'none';
-    uploadedImages = [];
-    document.getElementById('image-input').value = '';
-    document.getElementById('file-count').innerText = '0 fotos seleccionadas';
-    document.getElementById('preview-container').innerHTML = '';
-    document.getElementById('analyze-btn').disabled = true;
 }
