@@ -369,7 +369,7 @@ async function displayRoute(stops) {
                     <div class="circle-center">
                         <div class="center-icon">📦</div>
                         <div class="center-text">RUTA <br>MÁS <br>EFICIENTE</div>
-                        <div class="center-subtitle">Toca cualquier punto <br>para ir a la dirección <br>en <span class="black-highlight">Google Maps</span></div>
+                        <div class="center-subtitle">Toca cualquier punto para ir a la dirección <br>en <span class="black-highlight">Google Maps</span></div>
                         <div class="center-hand-icon">☝️ → 📍</div>
                     </div>
 
