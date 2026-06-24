@@ -111,9 +111,9 @@
     height: 100%;
     border-radius: 50%;
     background: transparent;
-    box-shadow: 0 0 100px rgba(168, 85, 247, 0.2), 
-                0 0 150px rgba(168, 85, 247, 0.1);
-    border: 5px solid rgba(168, 85, 247, 0.6);
+    box-shadow: 0 0 100px rgba(124, 58, 237, 0.2), 
+                0 0 150px rgba(124, 58, 237, 0.1);
+    border: 5px solid rgba(124, 58, 237, 0.6);
     overflow: visible;
 }
 
@@ -127,14 +127,14 @@
     background: conic-gradient(
         from 0deg,
         transparent 0deg,
-        rgba(168, 85, 247, 0.1) 60deg,
-        rgba(192, 132, 252, 0.2) 120deg,
+        rgba(124, 58, 237, 0.08) 60deg,
+        rgba(168, 85, 247, 0.15) 120deg,
         transparent 180deg,
-        rgba(168, 85, 247, 0.1) 240deg,
-        rgba(192, 132, 252, 0.2) 300deg,
+        rgba(124, 58, 237, 0.08) 240deg,
+        rgba(168, 85, 247, 0.15) 300deg,
         transparent 360deg
     );
-    animation: rotateBg 15s linear infinite;
+    animation: rotateBg 20s linear infinite;
     border-radius: 50%;
     pointer-events: none;
 }
@@ -157,22 +157,22 @@
 
 .particle {
     position: absolute;
-    width: 8px;
-    height: 8px;
-    background: linear-gradient(135deg, #c084fc, #a855f7);
+    width: 6px;
+    height: 6px;
+    background: linear-gradient(135deg, #a855f7, #7c3aed);
     border-radius: 50%;
-    box-shadow: 0 0 10px #c084fc, 0 0 20px #a855f7;
+    box-shadow: 0 0 8px #a855f7, 0 0 16px #7c3aed;
     animation: floatParticle 8s ease-in-out calc(var(--i) * 0.5s) infinite;
 }
 
 @keyframes floatParticle {
-    0%, 100% { transform: translate(0, 0) scale(1); opacity: 0.8; }
-    25% { transform: translate(10px, -10px) scale(1.2); opacity: 1; }
-    50% { transform: translate(0, -20px) scale(1); opacity: 0.6; }
-    75% { transform: translate(-10px, -10px) scale(0.8); opacity: 0.9; }
+    0%, 100% { transform: translate(0, 0) scale(1); opacity: 0.7; }
+    25% { transform: translate(8px, -8px) scale(1.2); opacity: 1; }
+    50% { transform: translate(0, -16px) scale(1); opacity: 0.5; }
+    75% { transform: translate(-8px, -8px) scale(0.8); opacity: 0.8; }
 }
 
-/* Center Content - Transparent */
+/* Center Content - Transparent, Dark Purple */
 .circle-center {
     position: absolute;
     top: 50%;
@@ -185,7 +185,6 @@
     background: transparent;
     border: none;
     box-shadow: none;
-    backdrop-filter: none;
 }
 
 .center-icon {
@@ -197,12 +196,17 @@
 
 .center-text {
     font-size: 1.6em;
-    font-weight: bold;
+    font-weight: 900;
     line-height: 1.2;
     margin-bottom: 10px;
-    color: #d8b4fe; /* Light purple */
-    text-shadow: 0 0 15px #a855f7, 0 0 30px #7e22ce; /* Purple glow */
+    color: #581c87; /* Very dark purple */
+    text-shadow: 
+        0 0 20px #a855f7,
+        0 0 40px #7c3aed,
+        0 0 60px #6d28d9,
+        0 0 80px #581c87;
     letter-spacing: 1px;
+    -webkit-text-stroke: 0.5px #4c1d95;
 }
 
 .center-subtitle {
@@ -210,14 +214,19 @@
     opacity: 0.95;
     line-height: 1.5;
     margin-bottom: 8px;
-    color: #e9d5ff;
-    text-shadow: 0 0 8px rgba(168, 85, 247, 0.5);
+    color: #4c1d95; /* Dark purple */
+    text-shadow: 0 0 12px #a855f7, 0 0 24px #7c3aed;
+    font-weight: 600;
 }
 
-.purple-highlight {
-    color: #f3e8ff;
-    font-weight: bold;
-    text-shadow: 0 0 12px #c084fc;
+.black-highlight {
+    color: #000000 !important;
+    font-weight: 900;
+    text-shadow: none;
+    -webkit-text-stroke: 0.3px #000;
+    background: rgba(255, 255, 255, 0.7);
+    padding: 1px 6px;
+    border-radius: 4px;
 }
 
 .center-hand-icon {
@@ -240,8 +249,7 @@
 
 .rotate-pulse-group {
     transform-origin: 50% 50%;
-    /* Rotates continuously AND pulses opacity every 2 seconds */
-    animation: rotateClockwise 4s linear infinite, pulseLine 2s ease-in-out infinite;
+    animation: rotateClockwise 8s linear infinite, pulseLine 2s ease-in-out infinite;
 }
 
 @keyframes rotateClockwise {
@@ -252,19 +260,19 @@
 @keyframes pulseLine {
     0%, 100% { 
         opacity: 1; 
-        filter: drop-shadow(0 0 8px #a855f7); 
+        filter: drop-shadow(0 0 10px #a855f7); 
     }
     50% { 
-        opacity: 0.3; 
-        filter: drop-shadow(0 0 2px #a855f7); 
+        opacity: 0.2; 
+        filter: drop-shadow(0 0 2px #7c3aed); 
     }
 }
 
-/* Stop Points */
+/* Stop Points - Clean flex layout with proper spacing */
 .route-stop-point {
     position: absolute;
-    left: calc(var(--x) * 1%);
-    top: calc(var(--y) * 1%);
+    left: 0;
+    top: 0;
     transform: translate(-50%, -50%);
     cursor: pointer;
     transition: all 0.3s ease;
@@ -272,7 +280,7 @@
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 8px;
+    gap: 14px; /* More space between number and label */
 }
 
 .route-stop-point:hover {
@@ -298,6 +306,7 @@
     position: relative;
     z-index: 25;
     text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+    flex-shrink: 0;
 }
 
 .stop-number.start {
@@ -312,26 +321,22 @@
     font-size: 1.4em;
 }
 
-/* Address Labels - Full text, wrapping allowed */
+/* Address Labels - Flows naturally below number with gap */
 .stop-address-label {
-    position: absolute;
-    left: calc(var(--label-x) * 1%);
-    top: calc(var(--label-y) * 1%);
-    transform: translate(-50%, -50%);
-    background: rgba(0, 0, 0, 0.85);
+    background: rgba(0, 0, 0, 0.9);
     color: white;
-    padding: 6px 10px;
+    padding: 6px 12px;
     border-radius: 10px;
-    font-size: 0.75em;
-    border: 2px solid rgba(168, 85, 247, 0.6);
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5), 0 0 15px rgba(168, 85, 247, 0.3);
+    font-size: 0.72em;
+    border: 2px solid rgba(124, 58, 237, 0.7);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.6), 0 0 15px rgba(124, 58, 237, 0.4);
     backdrop-filter: blur(5px);
-    max-width: 160px; /* Wider to show more text */
-    white-space: normal; /* Allow text to wrap */
+    max-width: 180px;
+    white-space: normal;
     word-wrap: break-word;
     text-align: center;
     font-weight: 600;
-    text-shadow: 0 0 8px rgba(255, 255, 255, 0.4);
+    text-shadow: 0 0 6px rgba(255, 255, 255, 0.3);
     line-height: 1.3;
     z-index: 26;
 }
@@ -346,14 +351,14 @@
     .route-circle-wrapper { max-width: 320px; }
     .center-text { font-size: 1.3em; }
     .stop-number { width: 42px; height: 42px; font-size: 1em; }
-    .stop-address-label { font-size: 0.7em; padding: 5px 8px; max-width: 130px; }
+    .stop-address-label { font-size: 0.68em; padding: 5px 8px; max-width: 140px; }
     .center-icon { font-size: 2.5em; }
 }
 
 @media (max-width: 480px) {
     .route-circle-wrapper { max-width: 280px; }
     .stop-number { width: 38px; height: 38px; font-size: 0.9em; }
-    .stop-address-label { font-size: 0.65em; padding: 4px 6px; max-width: 110px; }
+    .stop-address-label { font-size: 0.62em; padding: 4px 6px; max-width: 120px; }
     .center-text { font-size: 1.1em; }
     .center-subtitle { font-size: 0.75em; }
 }
