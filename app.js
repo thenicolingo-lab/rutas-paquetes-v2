@@ -365,28 +365,19 @@ async function displayRoute(stops) {
                         `).join('')}
                     </div>
                     
-                    <!-- Center content - Pure Black Text -->
+                    <!-- Center content -->
                     <div class="circle-center">
-                        <div class="center-icon">📦</div>
+                        <div class="center-icon"></div>
                         <div class="center-text">RUTA<br>MÁS<br>EFICIENTE</div>
                         <div class="center-subtitle">Toca cualquier punto<br>para ir a la dirección<br>en <span class="black-highlight">Google Maps</span></div>
                         <div class="center-hand-icon">☝️ → 📍</div>
                     </div>
 
-                    <!-- SVG Rotating Ring with Smaller Arrow -->
+                    <!-- SVG Rotating Ring -->
                     <svg class="rotating-ring-svg" viewBox="0 0 100 100" preserveAspectRatio="xMidYMid meet">
                         <g class="rotate-pulse-group">
-                            <!-- Arc -->
-                            <path d="M 50 4 A 46 46 0 0 1 96 50" 
-                                  fill="none" 
-                                  stroke="#7c3aed" 
-                                  stroke-width="1.5" 
-                                  stroke-linecap="round" 
-                                  filter="drop-shadow(0 0 4px #a855f7)" />
-                            <!-- Smaller Arrowhead -->
-                            <polygon points="96,54 90,46 102,46" 
-                                     fill="#a855f7" 
-                                     filter="drop-shadow(0 0 4px #7c3aed)" />
+                            <path d="M 50 4 A 46 46 0 0 1 96 50" fill="none" stroke="#7c3aed" stroke-width="1.5" stroke-linecap="round" filter="drop-shadow(0 0 4px #a855f7)" />
+                            <polygon points="96,54 90,46 102,46" fill="#a855f7" filter="drop-shadow(0 0 4px #7c3aed)" />
                         </g>
                     </svg>
                     
@@ -401,18 +392,18 @@ async function displayRoute(stops) {
                         const isEnd = i === stops.length - 1;
                         
                         return `
-                            <div class="route-stop-point" style="left: ${x}%; top: ${y}%;" onclick="navigateTo('${stop.replace(/'/g, "\\'")}')">
-                                <div class="stop-number ${isStart ? 'start' : ''} ${isEnd ? 'end' : ''}">
+                            <div class="route-stop-point" style="left: ${x}%; top: ${y}%;">
+                                <div class="stop-number ${isStart ? 'start' : ''} ${isEnd ? 'end' : ''}" onclick="navigateTo('${stop.replace(/'/g, "\\'")}')">
                                     ${isStart ? '🏢' : isEnd ? '🏠' : i + 1}
                                 </div>
                             </div>
                         `;
                     }).join('')}
 
-                    <!-- Address Labels (Pushed outside the circle) -->
+                    <!-- Address Labels (Pushed outside) -->
                     ${stops.map((stop, i) => {
                         const angle = (i * (360 / stops.length)) - 90;
-                        const labelRadius = 62; // Pushed further out
+                        const labelRadius = 68; // Further out to clear the circle
                         const labelX = 50 + labelRadius * Math.cos(angle * Math.PI / 180);
                         const labelY = 50 + labelRadius * Math.sin(angle * Math.PI / 180);
                         
