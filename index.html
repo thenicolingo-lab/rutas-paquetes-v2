@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>MayitaEntregas - Optimizador de Rutas</title>
     <link rel="manifest" href="manifest.json">
-    <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -74,9 +73,6 @@
         @keyframes spin { to { transform: rotate(360deg); } }
         .success-message { background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%); color: white; padding: 15px; border-radius: 12px; margin: 15px 0; animation: slideDown 0.5s ease; text-align: center; font-weight: 500; }
 
-        /* ========================================= */
-        /* 📸 AI SCANNER & ENHANCED ROUTE STYLES     */
-        /* ========================================= */
         .btn-blue { background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); box-shadow: 0 4px 15px rgba(79, 172, 254, 0.4); color: white; }
         .btn-blue:hover { box-shadow: 0 8px 25px rgba(79, 172, 254, 0.5); }
         .tips-box { background: #fff3cd; border: 1px solid #ffc107; border-radius: 12px; padding: 15px; margin: 15px 0; font-size: 0.9em; color: #856404; }
@@ -134,33 +130,23 @@
                 <button onclick="saveNewLocation('pickup')" class="btn-green">💾 Guardar dirección</button>
             </section>
 
-            <!-- 📸 AI Label Scanner Section -->
             <section id="ai-scanner-section" class="fade-in">
                 <h3>📸 Escáner Inteligente de Guías (IA)</h3>
-                
                 <div class="tips-box">
-                    <strong> Consejos para mejores resultados:</strong>
+                    <strong>💡 Consejos para mejores resultados:</strong>
                     <ul>
                         <li>📷 Toma fotos <strong>solo de la etiqueta adhesiva</strong>, no de toda la caja</li>
                         <li>🎯 Incluye <strong>mínimo 2 etiquetas</strong> claramente visibles por foto</li>
                         <li>💡 Buena iluminación y evita reflejos</li>
                     </ul>
                 </div>
-
                 <div class="upload-area" id="upload-area">
                     <input type="file" id="image-input" accept="image/*" multiple style="display:none">
-                    <button class="btn-blue" onclick="document.getElementById('image-input').click()">
-                        📤 Subir Fotos de Guías
-                    </button>
+                    <button class="btn-blue" onclick="document.getElementById('image-input').click()">📤 Subir Fotos de Guías</button>
                     <p id="file-count">0 fotos seleccionadas</p>
                 </div>
-
                 <div id="preview-container" class="preview-grid"></div>
-
-                <button class="btn-green" id="analyze-btn" onclick="analyzeWithTesseract()" disabled>
-                    🤖 Analizar con IA
-                </button>
-
+                <button class="btn-green" id="analyze-btn" onclick="analyzeWithGroq()" disabled>🤖 Analizar con IA</button>
                 <div id="ai-result-box" style="display:none">
                     <h4>📋 Direcciones Extraídas:</h4>
                     <textarea id="extracted-addresses" rows="6" placeholder="Las direcciones aparecerán aquí..."></textarea>
@@ -176,14 +162,11 @@
                 <h3>📦 Agregar dirección del paquete</h3>
                 <textarea id="bulk-addresses" rows="3" placeholder="Pega lista aquí (ej: Dir1;Dir2;Dir3)"></textarea>
                 <button class="btn-green" onclick="addBulkAddresses()">➕ Agregar toda la lista</button>
-                
                 <div style="display: flex; gap: 10px; margin-top: 15px;">
                     <input type="text" id="manual-address" placeholder="O escribir manualmente" style="flex: 1; margin: 0;">
                     <button onclick="addManualAddress()" style="width: 35%; margin: 0;">Agregar</button>
                 </div>
-
                 <hr>
-                
                 <div id="scanned-list"></div>
             </section>
 
@@ -194,21 +177,16 @@
                 <button onclick="saveNewLocation('final')" class="btn-green">💾 Guardar dirección</button>
             </section>
 
-            <button class="btn-green" onclick="calculateRoute()" style="font-size: 1.2em; padding: 18px;">
-                🎯 Optimizar Ruta
-            </button>
+            <button class="btn-green" onclick="calculateRoute()" style="font-size: 1.2em; padding: 18px;">🎯 Optimizar Ruta</button>
 
             <section id="route-results" style="display:none;">
                 <h3>✅ Ruta Optimizada</h3>
                 <div id="optimized-stops"></div>
             </section>
             
-            <button onclick="localStorage.clear(); location.reload();" style="background: linear-gradient(135deg, #6c757d 0%, #5a6268 100%); font-size: 13px; margin-top: 25px; opacity: 0.8;">
-                🔄 Resetear App
-            </button>
+            <button onclick="localStorage.clear(); location.reload();" style="background: linear-gradient(135deg, #6c757d 0%, #5a6268 100%); font-size: 13px; margin-top: 25px; opacity: 0.8;">🔄 Resetear App</button>
         </div>
     </div>
-
     <script src="app.js"></script>
 </body>
 </html>
