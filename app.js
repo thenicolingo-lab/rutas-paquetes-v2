@@ -354,60 +354,64 @@ async function displayRoute(stops) {
     routeResults.classList.remove('show');
     container.innerHTML = "";
     
+    // Determine vehicle emoji based on selection
+    const vehicleType = document.getElementById('vehicle').value;
+    let vehicleEmoji = '🚗';
+    if (vehicleType === 'cycling-regular') vehicleEmoji = '🚴';
+    else if (vehicleType === 'driving-motorcycle') vehicleEmoji = '🏍️';
+    
     const routeHTML = `
-        <div id="circular-route-container" class="circular-route-container">
-            <div class="route-circle-wrapper">
-                <div class="route-circle">
-                    <div class="circle-animated-bg"></div>
-                    
-                    <div class="floating-particles">
-                        ${Array.from({length: 12}, (_, i) => `
-                            <div class="particle" style="--i: ${i}"></div>
-                        `).join('')}
-                    </div>
-                    
-                    <div class="circle-center">
-                        <div class="center-icon">📦</div>
-                        <div class="center-text">RUTA <br>MÁS <br>EFICIENTE</div>
-                        <div class="center-subtitle">Toca cualquier punto para ir a la dirección <br>en <span class="black-highlight">Google Maps</span></div>
-                        <div class="center-hand-icon">☝️ → 📍</div>
-                    </div>
-
-                    <svg class="rotating-ring-svg" viewBox="0 0 100 100" preserveAspectRatio="xMidYMid meet">
-                        <g class="rotate-pulse-group">
-                            <path d="M 50 4 A 46 46 0 0 1 96 50" fill="none" stroke="#7c3aed" stroke-width="1.5" stroke-linecap="round" filter="drop-shadow(0 0 4px #a855f7)"/>
-                            <polygon points="96,54 90,46 102,46" fill="#a855f7" filter="drop-shadow(0 0 4px #7c3aed)"/>
-                        </g>
-                    </svg>
-                    
-                    ${stops.map((stop, i) => {
-                        const angle = (i * (360 / stops.length)) - 90;
-                        const angleRad = angle * Math.PI / 180;
-                        
-                        const circleRadius = 42; 
-                        const stopX = 50 + circleRadius * Math.cos(angleRad);
-                        const stopY = 50 + circleRadius * Math.sin(angleRad);
-                        
-                        // Increased label radius to push labels further out
-                        const labelRadius = 78; // Increased from 75
-                        const labelX = 50 + labelRadius * Math.cos(angleRad);
-                        const labelY = 50 + labelRadius * Math.sin(angleRad);
-                        
-                        const isStart = i === 0;
-                        const isEnd = i === stops.length - 1;
-                        
-                        return `
-                            <div class="stop-wrapper" style="--stop-x: ${stopX}; --stop-y: ${stopY}; --label-x: ${labelX}; --label-y: ${labelY};">
-                                <div class="stop-number ${isStart ? 'start' : ''} ${isEnd ? 'end' : ''}" onclick="navigateTo('${stop.replace(/'/g, "\\'")}')">
-                                    ${isStart ? '🏢' : isEnd ? '🏠' : i + 1}
-                                </div>
-                                <div class="stop-address-label">
-                                    ${isStart ? 'ÁREA DE CARGA' : isEnd ? 'HOGAR' : stop}
-                                </div>
-                            </div>
-                        `;
-                    }).join('')}
+        <div id="road-route-container" class="road-route-container">
+            <div class="route-header">
+                <h4>✅ Ruta Optimizada</h4>
+                <p>Toca cualquier punto para ir a la dirección en <span style="font-weight: 700;">Google Maps</span></p>
+            </div>
+            
+            <div class="road-container">
+                <!-- Loading Point -->
+                <div class="loading-point" onclick="navigateTo('${stops[0].replace(/'/g, "\\'")}')">
+                    🏢
                 </div>
+                <div class="loading-label">Punto de carga</div>
+                
+                <!-- The Road -->
+                <div class="road"></div>
+                <div class="road-lines"></div>
+                
+                <!-- Animated Vehicles -->
+                <div class="vehicle bicycle">🚴</div>
+                <div class="vehicle motorcycle">🏍️</div>
+                <div class="vehicle car">🚗</div>
+                
+                <!-- Stop Items -->
+                ${stops.slice(1, -1).map((stop, i) => {
+                    const isLeft = i % 2 === 0;
+                    const stopNumber = i + 1;
+                    
+                    return `
+                        <div class="stop-item ${isLeft ? 'left' : 'right'}">
+                            <div class="stop-number-road ${i === 0 ? 'start' : ''}" onclick="navigateTo('${stop.replace(/'/g, "\\'")}')">
+                                ${stopNumber}
+                            </div>
+                            <div class="stop-address-box" onclick="navigateTo('${stop.replace(/'/g, "\\'")}')">
+                                ${stop}
+                            </div>
+                        </div>
+                    `;
+                }).join('')}
+                
+                <!-- Final Destination -->
+                <div class="stop-item left" style="margin-top: 40px;">
+                    <div class="stop-number-road end" onclick="navigateTo('${stops[stops.length - 1].replace(/'/g, "\\'")}')">
+                        🏠
+                    </div>
+                    <div class="stop-address-box" onclick="navigateTo('${stops[stops.length - 1].replace(/'/g, "\\'")}')">
+                        ${stops[stops.length - 1]}
+                    </div>
+                </div>
+                
+                <!-- Final Arrow -->
+                <div class="final-marker">⬇️</div>
             </div>
         </div>
     `;
