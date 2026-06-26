@@ -350,7 +350,6 @@ async function displayRoute(stops) {
     const container = document.getElementById('optimized-stops');
     const routeResults = document.getElementById('route-results');
     
-    // Hide first to prevent layout jump
     routeResults.style.display = 'none';
     routeResults.classList.remove('show');
     container.innerHTML = "";
@@ -359,17 +358,14 @@ async function displayRoute(stops) {
         <div id="circular-route-container" class="circular-route-container">
             <div class="route-circle-wrapper">
                 <div class="route-circle">
-                    <!-- Animated gradient background -->
                     <div class="circle-animated-bg"></div>
                     
-                    <!-- Floating particles -->
                     <div class="floating-particles">
                         ${Array.from({length: 12}, (_, i) => `
                             <div class="particle" style="--i: ${i}"></div>
                         `).join('')}
                     </div>
                     
-                    <!-- Center content -->
                     <div class="circle-center">
                         <div class="center-icon">📦</div>
                         <div class="center-text">RUTA <br>MÁS <br>EFICIENTE</div>
@@ -377,7 +373,6 @@ async function displayRoute(stops) {
                         <div class="center-hand-icon">☝️ → 📍</div>
                     </div>
 
-                    <!-- SVG Rotating Ring -->
                     <svg class="rotating-ring-svg" viewBox="0 0 100 100" preserveAspectRatio="xMidYMid meet">
                         <g class="rotate-pulse-group">
                             <path d="M 50 4 A 46 46 0 0 1 96 50" fill="none" stroke="#7c3aed" stroke-width="1.5" stroke-linecap="round" filter="drop-shadow(0 0 4px #a855f7)"/>
@@ -385,19 +380,16 @@ async function displayRoute(stops) {
                         </g>
                     </svg>
                     
-                    <!-- Stops and Labels -->
                     ${stops.map((stop, i) => {
                         const angle = (i * (360 / stops.length)) - 90;
                         const angleRad = angle * Math.PI / 180;
                         
-                        // Position for the small circle (inside the ring)
                         const circleRadius = 42; 
                         const stopX = 50 + circleRadius * Math.cos(angleRad);
                         const stopY = 50 + circleRadius * Math.sin(angleRad);
                         
-                        // Position for label (INCREASED radius to push labels further out)
-                        // Changed from 68 to 75 to give more space and prevent overlap
-                        const labelRadius = 75; 
+                        // Increased label radius to push labels further out
+                        const labelRadius = 78; // Increased from 75
                         const labelX = 50 + labelRadius * Math.cos(angleRad);
                         const labelY = 50 + labelRadius * Math.sin(angleRad);
                         
@@ -422,14 +414,11 @@ async function displayRoute(stops) {
 
     container.innerHTML = routeHTML;
     
-    // Show with fade-in after a small delay to prevent twitching
     setTimeout(() => {
         routeResults.style.display = 'block';
-        // Force reflow
         routeResults.offsetHeight;
         routeResults.classList.add('show');
         
-        // Smooth scroll AFTER the element is fully rendered
         setTimeout(() => {
             routeResults.scrollIntoView({ 
                 behavior: 'smooth', 
