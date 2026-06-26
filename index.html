@@ -209,6 +209,66 @@
 }
         @media (max-width: 768px) { .route-circle-wrapper { max-width: 320px; } .center-text { font-size: 1.3em; } .stop-number { width: 42px; height: 42px; font-size: 1em; } .stop-address-label { font-size: 0.68em; padding: 5px 8px; max-width: 140px; } }
         @media (max-width: 480px) { .route-circle-wrapper { max-width: 280px; } .stop-number { width: 38px; height: 38px; font-size: 0.9em; } .stop-address-label { font-size: 0.62em; padding: 4px 6px; max-width: 120px; } .center-text { font-size: 1.1em; } .center-subtitle { font-size: 0.75em; } }
+/* Add these performance optimizations */
+.route-circle, 
+.circle-animated-bg, 
+.floating-particles, 
+.rotating-ring-svg,
+.stop-wrapper {
+    will-change: transform;
+    transform: translateZ(0); /* Force GPU acceleration */
+    backface-visibility: hidden;
+    perspective: 1000px;
+}
+
+/* Fix the twitching by preventing layout shifts */
+#route-results {
+    display: none;
+    opacity: 0;
+    transition: opacity 0.5s ease;
+    transform: translateZ(0);
+    will-change: opacity;
+}
+
+#route-results.show {
+    display: block;
+    opacity: 1;
+}
+
+/* Prevent animation from affecting scroll */
+.circular-route-container {
+    contain: layout style paint;
+    isolation: isolate;
+}
+
+/* Fix particle animation performance */
+.particle {
+    will-change: transform, opacity;
+    transform: translate3d(0, 0, 0);
+}
+
+/* Smooth out the rotating ring */
+.rotate-pulse-group {
+    will-change: transform, opacity;
+    transform-origin: 50% 50%;
+}
+
+/* Prevent body scroll jumping */
+body {
+    overflow-y: scroll; /* Always show scrollbar to prevent width shift */
+    scrollbar-gutter: stable; /* Modern browsers */
+}
+
+/* Fix for the animated background */
+.animated-bg {
+    pointer-events: none;
+    will-change: transform;
+}
+
+.floating-shape {
+    will-change: transform;
+    transform: translate3d(0, 0, 0);
+}
     </style>
 </head>
 <body>
