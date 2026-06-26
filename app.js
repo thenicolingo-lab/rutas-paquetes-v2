@@ -356,7 +356,7 @@ async function displayRoute(stops) {
     container.innerHTML = "";
     
     const routeHTML = `
-        <div class="circular-route-container">
+        <div id="circular-route-container" class="circular-route-container">
             <div class="route-circle-wrapper">
                 <div class="route-circle">
                     <!-- Animated gradient background -->
@@ -395,9 +395,9 @@ async function displayRoute(stops) {
                         const stopX = 50 + circleRadius * Math.cos(angleRad);
                         const stopY = 50 + circleRadius * Math.sin(angleRad);
                         
-                        // Position for label (pushed well outside the ring)
-                        // 85% radius puts them clearly outside the 50% border
-                        const labelRadius = 68; 
+                        // Position for label (INCREASED radius to push labels further out)
+                        // Changed from 68 to 75 to give more space and prevent overlap
+                        const labelRadius = 75; 
                         const labelX = 50 + labelRadius * Math.cos(angleRad);
                         const labelY = 50 + labelRadius * Math.sin(angleRad);
                         
@@ -421,6 +421,7 @@ async function displayRoute(stops) {
     `;
 
     container.innerHTML = routeHTML;
+    
     // Show with fade-in after a small delay to prevent twitching
     setTimeout(() => {
         routeResults.style.display = 'block';
@@ -432,7 +433,7 @@ async function displayRoute(stops) {
         setTimeout(() => {
             routeResults.scrollIntoView({ 
                 behavior: 'smooth', 
-                block: 'start' // Changed from 'nearest' to 'start'
+                block: 'start'
             });
         }, 100);
     }, 50);
