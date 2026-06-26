@@ -189,7 +189,7 @@
     backdrop-filter: blur(5px); 
     
     /* --- THIS IS THE FIX --- */
-    width: 70px; /* Use 'width' to FORCE the box size, instead of max-width */
+    width: 120px; /* Use 'width' to FORCE the box size, instead of max-width */
     word-break: break-word; /* Forces text to wrap even if it's a long continuous string */
     overflow-wrap: break-word; 
     /* ----------------------- */
@@ -201,14 +201,64 @@
     z-index: 26; 
     pointer-events: none;
     transition: all 0.3s ease;
+    white-space: normal; /* Allow text to wrap */
 }
 .stop-wrapper:hover .stop-address-label {
     transform: translate(-50%, -50%) scale(1.05);
     box-shadow: 0 8px 30px rgba(0, 0, 0, 0.9), 0 0 40px rgba(124, 58, 237, 0.8);
     z-index: 31;
 }
-        @media (max-width: 768px) { .route-circle-wrapper { max-width: 320px; } .center-text { font-size: 1.3em; } .stop-number { width: 42px; height: 42px; font-size: 1em; } .stop-address-label { font-size: 0.68em; padding: 5px 8px; max-width: 140px; } }
-        @media (max-width: 480px) { .route-circle-wrapper { max-width: 280px; } .stop-number { width: 38px; height: 38px; font-size: 0.9em; } .stop-address-label { font-size: 0.62em; padding: 4px 6px; max-width: 120px; } .center-text { font-size: 1.1em; } .center-subtitle { font-size: 0.75em; } }
+        
+/* Mobile adjustments */
+@media (max-width: 768px) { 
+    .route-circle-wrapper { 
+        max-width: 300px; 
+        margin: 30px auto 20px; /* Adjusted spacing for mobile */
+    } 
+    #circular-route-container {
+        min-height: 450px;
+        padding: 15px 5px;
+    }
+    .center-text { 
+        font-size: 1.2em; 
+    } 
+    .stop-number { 
+        width: 40px; 
+        height: 40px; 
+        font-size: 0.95em; 
+    } 
+    .stop-address-label { 
+        font-size: 0.65em; 
+        padding: 6px 8px; 
+        width: 100px; /* Adjusted for mobile */
+    } 
+}
+
+@media (max-width: 480px) { 
+    .route-circle-wrapper { 
+        max-width: 270px; 
+        margin: 25px auto 15px; /* Adjusted spacing for small screens */
+    } 
+    #circular-route-container {
+        min-height: 400px;
+    }
+    .stop-number { 
+        width: 36px; 
+        height: 36px; 
+        font-size: 0.85em; 
+    } 
+    .stop-address-label { 
+        font-size: 0.6em; 
+        padding: 5px 6px; 
+        width: 90px; /* Adjusted for small screens */
+    } 
+    .center-text { 
+        font-size: 1em; 
+    } 
+    .center-subtitle { 
+        font-size: 0.7em; 
+    } 
+}
 /* Add these performance optimizations */
 .route-circle, 
 .circle-animated-bg, 
