@@ -338,7 +338,7 @@ async function calculateRoute() {
         btn.disabled = false;
         showSuccessMessage('✅ Ruta optimizada exitosamente');
         
-        document.getElementById('route-results').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        
     } catch(e) { 
         alert("Error: " + e.message); 
         const btn = document.querySelector('button[onclick="calculateRoute()"]');
@@ -348,8 +348,12 @@ async function calculateRoute() {
 
 async function displayRoute(stops) {
     const container = document.getElementById('optimized-stops');
+    const routeResults = document.getElementById('route-results');
+    
+    // Hide first to prevent layout jump
+    routeResults.style.display = 'none';
+    routeResults.classList.remove('show');
     container.innerHTML = "";
-    document.getElementById('route-results').style.display = "block";
     
     const routeHTML = `
         <div class="circular-route-container">
@@ -417,6 +421,21 @@ async function displayRoute(stops) {
     `;
 
     container.innerHTML = routeHTML;
+    // Show with fade-in after a small delay to prevent twitching
+    setTimeout(() => {
+        routeResults.style.display = 'block';
+        // Force reflow
+        routeResults.offsetHeight;
+        routeResults.classList.add('show');
+        
+        // Smooth scroll AFTER the element is fully rendered
+        setTimeout(() => {
+            routeResults.scrollIntoView({ 
+                behavior: 'smooth', 
+                block: 'start' // Changed from 'nearest' to 'start'
+            });
+        }, 100);
+    }, 50);
 }
 async function calculateDistance(from, to) {
     try {
