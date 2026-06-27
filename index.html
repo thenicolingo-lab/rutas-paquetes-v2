@@ -88,440 +88,321 @@
 
 
 /* ========================================== */
-/* ROAD-BASED ROUTE VISUALIZATION - FIXED     */
+/* NEW TIMELINE ROUTE VISUALIZATION           */
 /* ========================================== */
 #optimized-stops {
     width: 100%;
-    padding: 5px 5px;
+    padding: 5px;
     box-sizing: border-box;
 }
 
-/*#road-route-container {
-    width: 100%;
-    max-width: 100%;
-    margin: 0 auto;
-    position: relative;
-    background: transparent; /* Makes the inner box invisible 
-    border-radius: 0;        /* Removes the rounded corners 
-    padding: 20px 10px 20px; /* Reduces the empty space inside 
-    overflow: visible;
-}*/
-
 .route-header {
     text-align: center;
-    margin-bottom: 50px;
+    margin-bottom: 25px;
+    padding: 0 10px;
 }
 
 .route-header h4 {
-    color: #000;
-    font-size: 1.3em;
+    color: var(--dark);
+    font-size: 1.4em;
     font-weight: 700;
     margin-bottom: 8px;
 }
 
 .route-header p {
-    color: #333;
-    font-size: 0.9em;
+    color: #555;
+    font-size: 0.95em;
     font-weight: 500;
 }
 
-.road-container {
-    position: relative;
-    width: 100%;
-    max-width: 95%;
-    margin: 0 auto;
-    padding-top: 80px;
-    padding-bottom: 40px;
-    overflow: visible;
+.route-header .hint-icon {
+    display: inline-block;
+    background: var(--gradient-primary);
+    color: white;
+    padding: 3px 10px;
+    border-radius: 20px;
+    font-size: 0.8em;
+    font-weight: 600;
+    margin-left: 5px;
+    animation: pulseSoft 2s infinite;
 }
 
-/* Single Road - FULL HEIGHT FIX */
-.road {
+@keyframes pulseSoft {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+}
+
+/* Timeline container */
+.timeline {
+    position: relative;
+    padding: 10px 0;
+}
+
+/* The vertical connecting line */
+.timeline-line {
     position: absolute;
-    left: 42.5%;
-    transform: translateX(-50%);
-    width: 70px;
-    top: 0;
-    bottom: 0;
-    background: #1a1a1a;
-    border-radius: 5px;
-    box-shadow: 0 0 30px rgba(0,0,0,0.4);
+    left: 28px;
+    top: 30px;
+    bottom: 30px;
+    width: 3px;
+    background: linear-gradient(to bottom, 
+        var(--primary) 0%, 
+        #ff6348 30%,
+        #ff6348 70%,
+        var(--accent) 100%);
+    border-radius: 2px;
     z-index: 1;
 }
 
-/* Yellow dashed line in the CENTER */
-.road-lines {
+.timeline-line::before {
+    content: '';
     position: absolute;
     left: 50%;
     transform: translateX(-50%);
-    width: 6px;
+    width: 3px;
     top: 0;
     bottom: 0;
     background: repeating-linear-gradient(
         to bottom,
-        #ffd700 0px,
-        #ffd700 25px,
-        transparent 25px,
-        transparent 50px
+        rgba(255,255,255,0.5) 0px,
+        rgba(255,255,255,0.5) 8px,
+        transparent 8px,
+        transparent 16px
     );
-    animation: roadMove 1.5s linear infinite;
-    z-index: 5;
+    animation: dashMove 1s linear infinite;
 }
 
-@keyframes roadMove {
+@keyframes dashMove {
     from { background-position: 0 0; }
-    to { background-position: 0 50px; }
+    to { background-position: 0 16px; }
 }
 
-/* Loading Point */
-.loading-point {
-    position: absolute;
-    top: -50px;
-    left: 50%;
-    transform: translateX(-50%);
-    background: linear-gradient(135deg, #ffa502, #ffc107);
-    border-radius: 50%;
-    width: 55px;
-    height: 55px;
+/* Each stop card row */
+.timeline-item {
+    position: relative;
     display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 2em;
-    box-shadow: 0 4px 20px rgba(255, 165, 2, 0.6);
-    z-index: 10;
-    cursor: pointer;
-    transition: transform 0.3s ease;
+    align-items: stretch;
+    gap: 15px;
+    margin-bottom: 15px;
+    z-index: 2;
+    animation: slideInCard 0.5s ease forwards;
+    opacity: 0;
+    transform: translateX(-20px);
 }
 
-.loading-point:hover {
-    transform: translateX(-50%) scale(1.1);
+.timeline-item:last-child {
+    margin-bottom: 0;
 }
 
-.loading-label {
-    position: absolute;
-    top: -35px;
-    left: 50%;
-    transform: translateX(-50%);
-    background: rgba(0,0,0,0.9);
-    color: white;
-    padding: 6px 12px;
-    border-radius: 8px;
-    font-size: 0.75em;
-    font-weight: 600;
-    white-space: nowrap;
-    box-shadow: 0 3px 15px rgba(0,0,0,0.4);
+@keyframes slideInCard {
+    to { opacity: 1; transform: translateX(0); }
 }
 
-/* Stop Items - ANCHORED to road sides */
-.stop-item {
-    position: absolute;
-    width: calc(50% - 55px);
-    display: flex;
-    align-items: center;
-    z-index: 8;
-}
-
-/* Left side stops */
-.stop-item.left {
-    left: 0;
-    justify-content: flex-end;
-    padding-right: 15px;
-}
-
-/* Right side stops */
-.stop-item.right {
-    right: 0;
-    justify-content: flex-start;
-    padding-left: 15px;
-}
-
-/* Stop number - ALL RED */
-.stop-number-road {
-    width: 45px;
-    height: 45px;
-    border-radius: 50%;
-    background: linear-gradient(135deg, #ff4757, #ff6348);
-    color: white;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-weight: bold;
-    font-size: 1.1em;
-    box-shadow: 0 4px 20px rgba(255, 71, 87, 0.7), 0 0 25px rgba(255, 71, 87, 0.5);
-    border: 4px solid white;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    z-index: 8;
+/* Number badge on the left */
+.stop-badge {
     flex-shrink: 0;
-}
-
-.stop-number-road:hover {
-    transform: scale(1.15);
-    box-shadow: 0 6px 25px rgba(255, 71, 87, 0.9), 0 0 35px rgba(255, 71, 87, 0.7);
-}
-
-/* Left side: Box then Number */
-.stop-item.left .stop-address-box {
-    order: 1;
-    margin-right: 10px;
-}
-
-.stop-item.left .stop-number-road {
-    order: 2;
-}
-
-/* Right side: Number then Box */
-.stop-item.right .stop-number-road {
-    order: 1;
-    margin-left: 10px;
-}
-
-.stop-item.right .stop-address-box {
-    order: 2;
-}
-
-/* Address box */
-.stop-address-box {
-    background: rgba(0, 0, 0, 0.9);
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 1.2em;
     color: white;
-    padding: 10px 15px;
-    border-radius: 10px;
-    font-size: 0.85em;
-    font-weight: 600;
-    max-width: 100px;
-    text-align: center;
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.6), 0 0 20px rgba(124, 58, 237, 0.4);
-    border: 2px solid rgba(124, 58, 237, 0.6);
+    border: 4px solid white;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.15);
+    position: relative;
+    z-index: 3;
     cursor: pointer;
     transition: all 0.3s ease;
+}
+
+.stop-badge:hover {
+    transform: scale(1.1) rotate(5deg);
+    box-shadow: 0 6px 20px rgba(0,0,0,0.25);
+}
+
+.stop-badge.pickup {
+    background: linear-gradient(135deg, #ffa502, #ff9f43);
+    box-shadow: 0 4px 15px rgba(255, 165, 2, 0.5);
+}
+
+.stop-badge.delivery {
+    background: linear-gradient(135deg, #ff4757, #ff6348);
+    box-shadow: 0 4px 15px rgba(255, 71, 87, 0.5);
+}
+
+.stop-badge.final {
+    background: linear-gradient(135deg, #2ed573, #7bed9f);
+    box-shadow: 0 4px 15px rgba(46, 213, 115, 0.5);
+}
+
+/* Address card */
+.stop-card-new {
+    flex: 1;
+    background: white;
+    border-radius: 14px;
+    padding: 14px 18px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+    border-left: 5px solid transparent;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    min-width: 0; /* Prevents text overflow issues */
+}
+
+.stop-card-new:hover {
+    transform: translateX(5px);
+    box-shadow: 0 8px 30px rgba(0,0,0,0.12);
+}
+
+.stop-card-new:active {
+    transform: scale(0.98);
+}
+
+.stop-card-new.pickup {
+    border-left-color: #ffa502;
+    background: linear-gradient(135deg, #fff9f0 0%, #ffffff 100%);
+}
+
+.stop-card-new.delivery {
+    border-left-color: #ff4757;
+    background: linear-gradient(135deg, #fff5f5 0%, #ffffff 100%);
+}
+
+.stop-card-new.final {
+    border-left-color: #2ed573;
+    background: linear-gradient(135deg, #f0fff5 0%, #ffffff 100%);
+}
+
+.stop-label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.8em;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.stop-label.pickup { color: #e67e22; }
+.stop-label.delivery { color: #e74c3c; }
+.stop-label.final { color: #27ae60; }
+
+.stop-label .emoji {
+    font-size: 1.1em;
+}
+
+.stop-address {
+    color: var(--dark);
+    font-size: 0.98em;
+    font-weight: 500;
+    line-height: 1.4;
     word-break: break-word;
     overflow-wrap: break-word;
-    line-height: 1.3;
-    flex-shrink: 0;
 }
 
-.stop-address-box:hover {
-    transform: scale(1.05);
-    box-shadow: 0 6px 25px rgba(0, 0, 0, 0.8), 0 0 30px rgba(124, 58, 237, 0.7);
+.stop-map-hint {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    color: #999;
+    font-size: 0.75em;
+    margin-top: 4px;
 }
 
-/* Vehicles */
-.vehicle-animated {
-    position: absolute;
-    font-size: 1.6em;
-    z-index: 6;
-    filter: drop-shadow(0 2px 5px rgba(0,0,0,0.3));
-    pointer-events: none;
+.stop-map-hint svg {
+    width: 12px;
+    height: 12px;
 }
 
-/* Final destination - AT THE END OF ROAD */
-.final-stop {
-    position: absolute;
-    left: -60%;
-    transform: translateX(-50%);
-    z-index: 10;
+/* Summary footer */
+.route-summary {
+    margin-top: 20px;
+    padding: 15px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border-radius: 14px;
+    color: white;
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 10px;
+    box-shadow: 0 4px 20px rgba(102, 126, 234, 0.3);
 }
 
-.final-stop .stop-number-road {
-    background: linear-gradient(135deg, #2ed573, #7bed9f);
-    box-shadow: 0 4px 20px rgba(46, 213, 115, 0.8), 0 0 30px rgba(46, 213, 115, 0.6);
-    width: 55px;
-    height: 55px;
-    font-size: 1.5em;
+.summary-item {
+    text-align: center;
+}
+
+.summary-value {
+    font-size: 1.4em;
+    font-weight: 700;
+    display: block;
+}
+
+.summary-label {
+    font-size: 0.8em;
+    opacity: 0.9;
+    font-weight: 500;
 }
 
 /* ========================================== */
-/* MOBILE FIXES - ZOOM OUT EFFECT             */
+/* RESPONSIVE - Adapts to ALL screen sizes    */
 /* ========================================== */
-@media (max-width: 768px) {
-    .road {
-        width: 60px;
+@media (max-width: 480px) {
+    .timeline-line {
+        left: 24px;
     }
     
-    .stop-item {
-        width: calc(50% - 45px);
-    }
-    
-    .stop-address-box {
-        max-width: 140px;
-        font-size: 0.8em;
-        padding: 8px 12px;
-    }
-    
-    .stop-number-road {
-        width: 40px;
-        height: 40px;
+    .stop-badge {
+        width: 48px;
+        height: 48px;
         font-size: 1em;
     }
     
-    .loading-point {
-        width: 50px;
-        height: 50px;
-        font-size: 1.8em;
-    }
-}
-
-@media (max-width: 480px) {
-    /* ZOOM OUT EFFECT FOR MOBILE */
-    #road-route-container {
-        transform: scale(0.85);
-        transform-origin: top center;
-        margin-bottom: -15%;
+    .stop-card-new {
+        padding: 12px 14px;
     }
     
-    .road {
-        width: 50px;
+    .stop-address {
+        font-size: 0.9em;
     }
     
-    .stop-item {
-        width: calc(50% - 35px);
+    .route-summary {
+        flex-direction: column;
+        gap: 8px;
     }
     
-    .stop-address-box {
-        max-width: 120px;
-        font-size: 0.75em;
-        padding: 7px 10px;
+    .summary-item {
+        display: flex;
+        justify-content: space-between;
+        width: 100%;
+        padding: 4px 10px;
+    }
+}
+
+@media (min-width: 768px) {
+    .timeline-line {
+        left: 32px;
     }
     
-    .stop-number-road {
-        width: 36px;
-        height: 36px;
-        font-size: 0.95em;
+    .stop-badge {
+        width: 64px;
+        height: 64px;
+        font-size: 1.4em;
     }
     
-    .loading-point {
-        width: 45px;
-        height: 45px;
-        font-size: 1.6em;
+    .stop-card-new {
+        padding: 18px 22px;
     }
     
-    .loading-label {
-        font-size: 0.7em;
-        padding: 5px 10px;
-        top: -30px;
+    .stop-address {
+        font-size: 1.05em;
     }
-    
-    .final-stop .stop-number-road {
-        width: 48px;
-        height: 48px;
-        font-size: 1.3em;
-    }
-}
-
-/* Extra small screens - stack vertically */
-@media (max-width: 380px) {
-    #road-route-container {
-        transform: scale(0.75);
-        margin-bottom: -25%;
-    }
-}
-
-/* Performance optimizations */
-.road, .road-lines, .stop-number-road, .stop-address-box {
-    will-change: transform;
-    transform: translateZ(0);
-    backface-visibility: hidden;
-}
-
-#route-results {
-    display: none;
-    opacity: 0;
-    transition: opacity 0.5s ease;
-    transform: translateZ(0);
-    will-change: opacity;
-    overflow: visible !important;
-    position: relative;
-    z-index: 1;
-}
-
-#route-results.show {
-    display: block;
-    opacity: 1;
-}
-
-#road-route-container {
-    contain: layout style paint;
-    isolation: isolate;
-}
-
-/* Setup/Onboarding Section */
-#setup-section {
-    max-width: 600px;
-    margin: 50px auto;
-    text-align: center;
-    background: rgba(255,255,255,0.98);
-    padding: 30px;
-}
-
-#setup-section h3 {
-    justify-content: center;
-}
-
-.setup-step {
-    margin: 25px 0;
-    text-align: left;
-}
-
-.setup-step h4 {
-    color: var(--secondary);
-    margin-bottom: 10px;
-    font-size: 1.1em;
-}
-
-.setup-step p {
-    color: #666;
-    font-size: 0.9em;
-    margin-bottom: 10px;
-    line-height: 1.5;
-}
-
-.setup-explanation {
-    background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%);
-    border-left: 4px solid var(--secondary);
-    padding: 15px;
-    border-radius: 8px;
-    margin: 20px 0;
-    font-size: 0.85em;
-    color: #1565c0;
-    line-height: 1.6;
-}
-
-.radio-group {
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-    margin: 10px 0;
-}
-
-.radio-option {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    padding: 12px;
-    background: #f8f9fa;
-    border-radius: 8px;
-    cursor: pointer;
-    transition: all 0.3s ease;
-}
-
-.radio-option:hover {
-    background: #e9ecef;
-}
-
-.radio-option input[type="radio"] {
-    width: auto;
-    margin: 0;
-}
-
-.radio-option label {
-    margin: 0;
-    cursor: pointer;
-    flex: 1;
-}
-
-#final-destination-custom {
-    display: none;
-    margin-top: 10px;
 }
     </style>
 </head>
