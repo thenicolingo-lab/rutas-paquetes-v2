@@ -58,7 +58,11 @@
         .stop-card:hover { transform: translateX(5px); box-shadow: 0 5px 15px rgba(0,0,0,0.1); }
         .stop-card input { margin: 0; flex: 1; border: none; background: transparent; padding: 5px; font-weight: 500; }
         .stop-card input:focus { outline: none; background: white; border-radius: 6px; }
-        #route-results { background: linear-gradient(135deg, #fff5f0 0%, #ffe8dc 100%); border: 2px solid var(--primary); }
+       #route-results { 
+    background: transparent; 
+    border: none; 
+    box-shadow: none;
+}
         #route-results h3 { color: var(--primary); }
         hr { border: 0; border-top: 2px solid #e0e0e0; margin: 20px 0; }
         #gate-section { max-width: 500px; margin: 50px auto; text-align: center; background: rgba(255,255,255,0.98); }
@@ -97,9 +101,9 @@
     max-width: 100%;
     margin: 0 auto;
     position: relative;
-    background: linear-gradient(180deg, #e8d5f0 0%, #d4c4e8 100%);
-    border-radius: 15px;
-    padding: 25px 10px 15px;
+    background: transparent; /* Makes the inner box invisible */
+    border-radius: 0;        /* Removes the rounded corners */
+    padding: 20px 10px 20px; /* Reduces the empty space inside */
     overflow: visible;
 }
 
