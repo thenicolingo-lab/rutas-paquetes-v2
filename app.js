@@ -400,86 +400,91 @@ async function displayRoute(stops) {
     routeResults.classList.remove('show');
     container.innerHTML = "";
     
-    // FIX: Calculate proper positions - final stop at the END of the road
-    const numPackages = stops.length - 2; // Number of delivery stops (excluding pickup and final)
-    const verticalSpacing = 100;
-    const startY = 120;
+    const pickup = stops[0];
+    const deliveries = stops.slice(1, -1);
+    const finalDest = stops[stops.length - 1];
     
-    // Position of last package
-    const lastPackagePosition = startY + ((numPackages - 1) * verticalSpacing);
+    // Build timeline items
+    const timelineItems = [];
     
-    // Final destination should be AFTER all packages with generous space
-    const finalStopPosition = lastPackagePosition + 120; // 120px gap after last package
+    // 1. Pickup
+    timelineItems.push({
+        type: 'pickup',
+        number: '🏢',
+        label: 'Punto de Carga',
+        address: pickup,
+        index: 0
+    });
     
-    // Road should extend to the very end
-    const containerHeight = finalStopPosition + 80; // 80px padding at bottom
+    // 2. Deliveries
+    deliveries.forEach((addr, i) => {
+        timelineItems.push({
+            type: 'delivery',
+            number: i + 1,
+            label: `Entrega #${i + 1}`,
+            address: addr,
+            index: i + 1
+        });
+    });
     
-    const routeHTML = `
-        <div id="road-route-container" class="road-route-container">
-            <div class="route-header">
-                <h4>✅ Ruta Optimizada</h4>
-                <p>Toca cualquier punto para ir a la dirección en <span style="font-weight: 700;">Google Maps</span></p>
-            </div>
-            
-            <div class="road-container" style="height: ${containerHeight}px;">
-                <!-- Loading Point -->
-                <div class="loading-point" onclick="navigateTo('${stops[0].replace(/'/g, "\\'")}')">
-                    🏢
-                </div>
-                <div class="loading-label">Punto de carga</div>
-                
-                <!-- The Road - NOW EXTENDS FULL HEIGHT -->
-                <div class="road"></div>
-                <div class="road-lines"></div>
-                
-                <!-- Stop Items -->
-                ${stops.slice(1, -1).map((stop, i) => {
-                    const isLeft = i % 2 === 0;
-                    const stopNumber = i + 1;
-                    const topPosition = startY + (i * verticalSpacing);
-                    
-                    if (isLeft) {
-                        return `
-                            <div class="stop-item left" style="top: ${topPosition}px;">
-                                <div class="stop-address-box" onclick="navigateTo('${stop.replace(/'/g, "\\'")}')">
-                                    ${stop}
-                                </div>
-                                <div class="stop-number-road" onclick="navigateTo('${stop.replace(/'/g, "\\'")}')">
-                                    ${stopNumber}
-                                </div>
-                            </div>
-                        `;
-                    } else {
-                        return `
-                            <div class="stop-item right" style="top: ${topPosition}px;">
-                                <div class="stop-number-road" onclick="navigateTo('${stop.replace(/'/g, "\\'")}')">
-                                    ${stopNumber}
-                                </div>
-                                <div class="stop-address-box" onclick="navigateTo('${stop.replace(/'/g, "\\'")}')">
-                                    ${stop}
-                                </div>
-                            </div>
-                        `;
-                    }
-                }).join('')}
-                
-                <!-- Final Destination - AT THE END OF ROAD -->
-                <div class="final-stop" style="top: ${finalStopPosition}px;">
-                    <div class="stop-number-road" onclick="navigateTo('${stops[stops.length - 1].replace(/'/g, "\\'")}')">
-                        🏠
+    // 3. Final destination
+    timelineItems.push({
+        type: 'final',
+        number: '🏠',
+        label: 'Destino Final',
+        address: finalDest,
+        index: timelineItems.length
+    });
+    
+    // Render HTML
+    const timelineHTML = `
+        <div class="route-header">
+            <h4>✅ Tu Ruta Optimizada</h4>
+            <p>Toca cualquier tarjeta para abrir <strong>Google Maps</strong> <span class="hint-icon">📍 Toca aquí</span></p>
+        </div>
+        
+        <div class="timeline">
+            <div class="timeline-line"></div>
+            ${timelineItems.map((item, i) => `
+                <div class="timeline-item" style="animation-delay: ${i * 0.1}s">
+                    <div class="stop-badge ${item.type}" onclick="navigateTo('${item.address.replace(/'/g, "\\'")}')">
+                        ${item.number}
+                    </div>
+                    <div class="stop-card-new ${item.type}" onclick="navigateTo('${item.address.replace(/'/g, "\\'")}')">
+                        <div class="stop-label ${item.type}">
+                            <span class="emoji">${item.type === 'pickup' ? '📦' : item.type === 'delivery' ? '🚚' : '🎯'}</span>
+                            <span>${item.label}</span>
+                        </div>
+                        <div class="stop-address">${item.address}</div>
+                        <div class="stop-map-hint">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
+                                <circle cx="12" cy="10" r="3"></circle>
+                            </svg>
+                            <span>Toca para navegar</span>
+                        </div>
                     </div>
                 </div>
-                
-                <!-- Vehicle container for animations -->
-                <div id="vehicle-container"></div>
+            `).join('')}
+        </div>
+        
+        <div class="route-summary">
+            <div class="summary-item">
+                <span class="summary-value">${deliveries.length}</span>
+                <span class="summary-label">Entregas</span>
+            </div>
+            <div class="summary-item">
+                <span class="summary-value">${timelineItems.length}</span>
+                <span class="summary-label">Paradas Totales</span>
+            </div>
+            <div class="summary-item">
+                <span class="summary-value">🚀</span>
+                <span class="summary-label">Optimizado</span>
             </div>
         </div>
     `;
-
-    container.innerHTML = routeHTML;
     
-    // Start vehicle animation
-    startVehicleAnimation();
+    container.innerHTML = timelineHTML;
     
     setTimeout(() => {
         routeResults.style.display = 'block';
