@@ -354,12 +354,6 @@ async function displayRoute(stops) {
     routeResults.classList.remove('show');
     container.innerHTML = "";
     
-    // Determine vehicle emoji based on selection
-    const vehicleType = document.getElementById('vehicle').value;
-    let vehicleEmoji = '🚗';
-    if (vehicleType === 'cycling-regular') vehicleEmoji = '🚴';
-    else if (vehicleType === 'driving-motorcycle') vehicleEmoji = '🏍️';
-    
     const routeHTML = `
         <div id="road-route-container" class="road-route-container">
             <div class="route-header">
@@ -374,39 +368,61 @@ async function displayRoute(stops) {
                 </div>
                 <div class="loading-label">Punto de carga</div>
                 
-                <!-- The Road -->
+                <!-- The Road with two lanes -->
                 <div class="road"></div>
+                <div class="road-left-lane"></div>
+                <div class="road-right-lane"></div>
                 <div class="road-lines"></div>
                 
-                <!-- Animated Vehicles -->
-                <div class="vehicle bicycle">🚴</div>
-                <div class="vehicle motorcycle">🏍️</div>
-                <div class="vehicle car">🚗</div>
+                <!-- Animated Vehicles - LEFT SIDE (going UP) -->
+                <div class="vehicle-left bicycle">🚴</div>
+                <div class="vehicle-left motorcycle">🏍️</div>
+                <div class="vehicle-left car">🚗</div>
                 
-                <!-- Stop Items -->
+                <!-- Animated Vehicles - RIGHT SIDE (going DOWN) -->
+                <div class="vehicle-right bicycle">🚴</div>
+                <div class="vehicle-right motorcycle">🏍️</div>
+                <div class="vehicle-right car">🚗</div>
+                
+                <!-- Stop Items - Alternating sides -->
                 ${stops.slice(1, -1).map((stop, i) => {
-                    const isLeft = i % 2 === 0;
+                    const isLeft = i % 2 === 0; // Alternate: 0=left, 1=right, 2=left, etc.
                     const stopNumber = i + 1;
                     
-                    return `
-                        <div class="stop-item ${isLeft ? 'left' : 'right'}">
-                            <div class="stop-number-road ${i === 0 ? 'start' : ''}" onclick="navigateTo('${stop.replace(/'/g, "\\'")}')">
-                                ${stopNumber}
+                    if (isLeft) {
+                        // Left side: Address Box | Number | Road
+                        return `
+                            <div class="stop-item left">
+                                <div class="stop-address-box" onclick="navigateTo('${stop.replace(/'/g, "\\'")}')">
+                                    ${stop}
+                                </div>
+                                <div class="stop-number-road ${i === 0 ? 'start' : ''}" onclick="navigateTo('${stop.replace(/'/g, "\\'")}')">
+                                    ${stopNumber}
+                                </div>
                             </div>
-                            <div class="stop-address-box" onclick="navigateTo('${stop.replace(/'/g, "\\'")}')">
-                                ${stop}
+                        `;
+                    } else {
+                        // Right side: Road | Number | Address Box
+                        return `
+                            <div class="stop-item right">
+                                <div class="stop-number-road ${i === 0 ? 'start' : ''}" onclick="navigateTo('${stop.replace(/'/g, "\\'")}')">
+                                    ${stopNumber}
+                                </div>
+                                <div class="stop-address-box" onclick="navigateTo('${stop.replace(/'/g, "\\'")}')">
+                                    ${stop}
+                                </div>
                             </div>
-                        </div>
-                    `;
+                        `;
+                    }
                 }).join('')}
                 
                 <!-- Final Destination -->
                 <div class="stop-item left" style="margin-top: 40px;">
-                    <div class="stop-number-road end" onclick="navigateTo('${stops[stops.length - 1].replace(/'/g, "\\'")}')">
-                        🏠
-                    </div>
                     <div class="stop-address-box" onclick="navigateTo('${stops[stops.length - 1].replace(/'/g, "\\'")}')">
                         ${stops[stops.length - 1]}
+                    </div>
+                    <div class="stop-number-road end" onclick="navigateTo('${stops[stops.length - 1].replace(/'/g, "\\'")}')">
+                        🏠
                     </div>
                 </div>
                 
