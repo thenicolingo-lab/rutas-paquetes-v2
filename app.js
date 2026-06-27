@@ -354,6 +354,11 @@ async function displayRoute(stops) {
     routeResults.classList.remove('show');
     container.innerHTML = "";
     
+    // Calculate vertical positions for stops (evenly spaced)
+    const totalStops = stops.length - 1; // Exclude loading point
+    const verticalSpacing = 100; // pixels between stops
+    const startY = 120; // Starting position from top
+    
     const routeHTML = `
         <div id="road-route-container" class="road-route-container">
             <div class="route-header">
@@ -368,44 +373,31 @@ async function displayRoute(stops) {
                 </div>
                 <div class="loading-label">Punto de carga</div>
                 
-                <!-- The Road with two lanes -->
+                <!-- The Road -->
                 <div class="road"></div>
-                <div class="road-left-lane"></div>
-                <div class="road-right-lane"></div>
                 <div class="road-lines"></div>
                 
-                <!-- Animated Vehicles - LEFT SIDE (going UP) -->
-                <div class="vehicle-left bicycle">🚴</div>
-                <div class="vehicle-left motorcycle">🏍️</div>
-                <div class="vehicle-left car">🚗</div>
-                
-                <!-- Animated Vehicles - RIGHT SIDE (going DOWN) -->
-                <div class="vehicle-right bicycle">🚴</div>
-                <div class="vehicle-right motorcycle">🏍️</div>
-                <div class="vehicle-right car">🚗</div>
-                
-                <!-- Stop Items - Alternating sides -->
+                <!-- Stop Items - ANCHORED positions -->
                 ${stops.slice(1, -1).map((stop, i) => {
-                    const isLeft = i % 2 === 0; // Alternate: 0=left, 1=right, 2=left, etc.
+                    const isLeft = i % 2 === 0;
                     const stopNumber = i + 1;
+                    const topPosition = startY + (i * verticalSpacing);
                     
                     if (isLeft) {
-                        // Left side: Address Box | Number | Road
                         return `
-                            <div class="stop-item left">
+                            <div class="stop-item left" style="top: ${topPosition}px;">
                                 <div class="stop-address-box" onclick="navigateTo('${stop.replace(/'/g, "\\'")}')">
                                     ${stop}
                                 </div>
-                                <div class="stop-number-road ${i === 0 ? 'start' : ''}" onclick="navigateTo('${stop.replace(/'/g, "\\'")}')">
+                                <div class="stop-number-road" onclick="navigateTo('${stop.replace(/'/g, "\\'")}')">
                                     ${stopNumber}
                                 </div>
                             </div>
                         `;
                     } else {
-                        // Right side: Road | Number | Address Box
                         return `
-                            <div class="stop-item right">
-                                <div class="stop-number-road ${i === 0 ? 'start' : ''}" onclick="navigateTo('${stop.replace(/'/g, "\\'")}')">
+                            <div class="stop-item right" style="top: ${topPosition}px;">
+                                <div class="stop-number-road" onclick="navigateTo('${stop.replace(/'/g, "\\'")}')">
                                     ${stopNumber}
                                 </div>
                                 <div class="stop-address-box" onclick="navigateTo('${stop.replace(/'/g, "\\'")}')">
@@ -417,22 +409,19 @@ async function displayRoute(stops) {
                 }).join('')}
                 
                 <!-- Final Destination -->
-                <div class="stop-item left" style="margin-top: 40px;">
-                    <div class="stop-address-box" onclick="navigateTo('${stops[stops.length - 1].replace(/'/g, "\\'")}')">
-                        ${stops[stops.length - 1]}
-                    </div>
-                    <div class="stop-number-road end" onclick="navigateTo('${stops[stops.length - 1].replace(/'/g, "\\'")}')">
+                <div class="final-stop" style="top: ${startY + ((totalStops - 1) * verticalSpacing) + 20}px;">
+                    <div class="stop-number-road" onclick="navigateTo('${stops[stops.length - 1].replace(/'/g, "\\'")}')">
                         🏠
                     </div>
                 </div>
-                
-                <!-- Final Arrow -->
-                <div class="final-marker">⬇️</div>
             </div>
         </div>
     `;
 
     container.innerHTML = routeHTML;
+    
+    // Animate vehicles with delays to avoid collisions
+    animateVehicles();
     
     setTimeout(() => {
         routeResults.style.display = 'block';
@@ -447,6 +436,57 @@ async function displayRoute(stops) {
         }, 100);
     }, 50);
 }
+
+function animateVehicles() {
+    const roadContainer = document.querySelector('.road-container');
+    if (!roadContainer) return;
+    
+    // Create vehicles with staggered timing
+    const vehicles = [
+        { emoji: '🚴', side: 'left', delay: 0, speed: 8000 },
+        { emoji: '🏍️', side: 'right', delay: 2000, speed: 4000 },
+        { emoji: '🚗', side: 'left', delay: 5000, speed: 10000 },
+        { emoji: '🚴', side: 'right', delay: 7000, speed: 9000 }
+    ];
+    
+    vehicles.forEach((v, index) => {
+        setTimeout(() => {
+            const vehicle = document.createElement('div');
+            vehicle.className = `vehicle-${v.side}`;
+            vehicle.textContent = v.emoji;
+            vehicle.style.animation = `drive${v.side === 'left' ? 'Up' : 'Down'} ${v.speed}ms linear infinite`;
+            roadContainer.appendChild(vehicle);
+            
+            // Remove old vehicles to prevent buildup
+            setTimeout(() => {
+                if (vehicle.parentNode) {
+                    vehicle.remove();
+                }
+            }, v.speed * 1.5);
+        }, v.delay);
+    });
+    
+    // Repeat animation
+    setTimeout(() => animateVehicles(), 15000);
+}
+
+// Add keyframe animations dynamically
+const style = document.createElement('style');
+style.textContent = `
+    @keyframes driveUp {
+        from { bottom: -50px; opacity: 0; }
+        10% { opacity: 1; }
+        90% { opacity: 1; }
+        100% { bottom: calc(100% + 50px); opacity: 0; }
+    }
+    @keyframes driveDown {
+        from { top: 80px; opacity: 0; }
+        10% { opacity: 1; }
+        90% { opacity: 1; }
+        100% { top: calc(100% + 50px); opacity: 0; }
+    }
+`;
+document.head.appendChild(style);
 async function calculateDistance(from, to) {
     try {
         console.log(`Calculating distance: "${from}" to "${to}"`);
