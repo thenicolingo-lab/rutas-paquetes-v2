@@ -585,7 +585,18 @@ async function calculateDistance(from, to) {
 
 function navigateTo(address) {
     const url = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(address + ', Colombia')}`;
-    window.location.href = url; // Opens in same tab, no new window
+    
+    // 1. Open the URL. The phone's OS intercepts this to launch the Google Maps app.
+    const newTab = window.open(url, '_blank');
+    
+    // 2. Auto-close the blank tab that gets left behind.
+    // The Maps app is already launched by the OS, so closing the browser tab 
+    // doesn't kill the app. It just removes the annoying blank "Untitled" tab!
+    setTimeout(() => {
+        if (newTab && !newTab.closed) {
+            newTab.close();
+        }
+    }, 800); // 800ms delay ensures the phone has enough time to trigger the app intent
 }
 
 // Handle radio button change for custom destination
