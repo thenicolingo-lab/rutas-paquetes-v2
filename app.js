@@ -584,30 +584,8 @@ async function calculateDistance(from, to) {
 }
 
 function navigateTo(address) {
-    // Try to open Google Maps app directly (works on mobile)
-    const appUrl = `geo:0,0?q=${encodeURIComponent(address + ', Colombia')}`;
-    
-    // Web fallback URL
-    const webUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(address + ', Colombia')}`;
-    
-    // Try app first, then fall back to web
-    const tempLink = document.createElement('a');
-    tempLink.href = appUrl;
-    tempLink.style.display = 'none';
-    document.body.appendChild(tempLink);
-    
-    // Attempt to open app
-    tempLink.click();
-    
-    // Remove after short delay
-    setTimeout(() => {
-        document.body.removeChild(tempLink);
-        
-        // If app didn't open (on desktop), use web version in same tab
-        if (!document.hidden) {
-            window.location.href = webUrl;
-        }
-    }, 100);
+    const url = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(address + ', Colombia')}`;
+    window.location.href = url; // Opens in same tab, no new window
 }
 
 // Handle radio button change for custom destination
