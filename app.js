@@ -1,7 +1,7 @@
 // ==========================================
 // CONFIGURATION
 // ==========================================
-const GROQ_API_KEY = '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'; // Your Groq Key
+const GROQ_API_KEY = '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';
 const API_KEY = 'eyJvcmciOiI1YjNjZTM1OTc4NTExMTAwMDFjZjYyNDgiLCJpZCI6IjEzZWNmZjAwZWNiYTQ4YjE5MTQ3MGZhZTFhZGMyY2E5IiwiaCI6Im11cm11cjY0In0=';
 
 // ==========================================
@@ -29,7 +29,9 @@ function handleGate() {
         if (input.length === 4) { 
             localStorage.setItem('userCode', input); 
             showSuccessMessage('✅ Código creado exitosamente');
-            setTimeout(unlockApp, 800);
+            setTimeout(() => {
+                showSetupScreen();
+            }, 800);
         } else {
             alert("El código debe tener 4 dígitos.");
         }
@@ -41,6 +43,49 @@ function handleGate() {
             alert("Código incorrecto.");
         }
     }
+}
+
+function showSetupScreen() {
+    document.getElementById('gate-section').style.display = 'none';
+    document.getElementById('setup-section').style.display = 'block';
+}
+
+function completeSetup() {
+    const pickupAddress = document.getElementById('setup-pickup').value.trim();
+    const finalType = document.querySelector('input[name="final-type"]:checked').value;
+    let finalAddress = '';
+    
+    if (finalType === 'home') {
+        finalAddress = 'Casa';
+    } else {
+        finalAddress = document.getElementById('final-destination-custom').value.trim();
+    }
+    
+    if (!pickupAddress) {
+        alert('⚠️ Por favor ingresa la dirección del punto de partida');
+        return;
+    }
+    
+    if (finalType === 'other' && !finalAddress) {
+        alert('⚠️ Por favor especifica la dirección del punto final');
+        return;
+    }
+    
+    // Save to localStorage
+    let pickupList = JSON.parse(localStorage.getItem('pickupList') || '[]');
+    if (!pickupList.includes(pickupAddress)) {
+        pickupList.push(pickupAddress);
+        localStorage.setItem('pickupList', JSON.stringify(pickupList));
+    }
+    
+    let finalList = JSON.parse(localStorage.getItem('finalList') || '[]');
+    if (!finalList.includes(finalAddress)) {
+        finalList.push(finalAddress);
+        localStorage.setItem('finalList', JSON.stringify(finalList));
+    }
+    
+    showSuccessMessage('✅ Configuración guardada exitosamente');
+    setTimeout(unlockApp, 1000);
 }
 
 function showSuccessMessage(message) {
@@ -56,6 +101,7 @@ function showSuccessMessage(message) {
 
 function unlockApp() {
     document.getElementById('gate-section').style.display = 'none';
+    document.getElementById('setup-section').style.display = 'none';
     document.getElementById('main-app').style.display = 'block';
     const sections = document.querySelectorAll('#main-app section');
     sections.forEach((section, index) => {
@@ -354,11 +400,19 @@ async function displayRoute(stops) {
     routeResults.classList.remove('show');
     container.innerHTML = "";
     
-    // Calculate vertical positions for stops
-    const totalStops = stops.length - 1;
+    // FIX: Calculate proper positions - final stop at the END of the road
+    const numPackages = stops.length - 2; // Number of delivery stops (excluding pickup and final)
     const verticalSpacing = 100;
     const startY = 120;
-    const containerHeight = startY + (totalStops * verticalSpacing) + 100;
+    
+    // Position of last package
+    const lastPackagePosition = startY + ((numPackages - 1) * verticalSpacing);
+    
+    // Final destination should be AFTER all packages with generous space
+    const finalStopPosition = lastPackagePosition + 120; // 120px gap after last package
+    
+    // Road should extend to the very end
+    const containerHeight = finalStopPosition + 80; // 80px padding at bottom
     
     const routeHTML = `
         <div id="road-route-container" class="road-route-container">
@@ -374,7 +428,7 @@ async function displayRoute(stops) {
                 </div>
                 <div class="loading-label">Punto de carga</div>
                 
-                <!-- The Road -->
+                <!-- The Road - NOW EXTENDS FULL HEIGHT -->
                 <div class="road"></div>
                 <div class="road-lines"></div>
                 
@@ -409,8 +463,8 @@ async function displayRoute(stops) {
                     }
                 }).join('')}
                 
-                <!-- Final Destination -->
-                <div class="final-stop" style="top: ${startY + ((totalStops - 1) * verticalSpacing) + 20}px;">
+                <!-- Final Destination - AT THE END OF ROAD -->
+                <div class="final-stop" style="top: ${finalStopPosition}px;">
                     <div class="stop-number-road" onclick="navigateTo('${stops[stops.length - 1].replace(/'/g, "\\'")}')">
                         🏠
                     </div>
@@ -424,7 +478,7 @@ async function displayRoute(stops) {
 
     container.innerHTML = routeHTML;
     
-    // Start vehicle animation (limited, no spam)
+    // Start vehicle animation
     startVehicleAnimation();
     
     setTimeout(() => {
@@ -445,7 +499,6 @@ function startVehicleAnimation() {
     const vehicleContainer = document.getElementById('vehicle-container');
     if (!vehicleContainer) return;
     
-    // Only create 2 vehicles total - one going up, one going down
     const vehicles = [
         { emoji: '🚗', side: 'right', speed: 8000 },
         { emoji: '🚴', side: 'left', speed: 12000 }
@@ -488,6 +541,7 @@ if (!document.getElementById('vehicle-animations-style')) {
     style.id = 'vehicle-animations-style';
     document.head.appendChild(style);
 }
+
 async function calculateDistance(from, to) {
     try {
         console.log(`Calculating distance: "${from}" to "${to}"`);
@@ -528,3 +582,15 @@ function navigateTo(address) {
     const url = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(address + ', Colombia')}`;
     window.open(url, '_blank');
 }
+
+// Handle radio button change for custom destination
+document.addEventListener('DOMContentLoaded', function() {
+    const otherRadio = document.getElementById('final-other');
+    const customInput = document.getElementById('final-destination-custom');
+    
+    if (otherRadio && customInput) {
+        otherRadio.addEventListener('change', function() {
+            customInput.style.display = this.checked ? 'block' : 'none';
+        });
+    }
+});
