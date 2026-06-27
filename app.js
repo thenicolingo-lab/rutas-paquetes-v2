@@ -354,10 +354,11 @@ async function displayRoute(stops) {
     routeResults.classList.remove('show');
     container.innerHTML = "";
     
-    // Calculate vertical positions for stops (evenly spaced)
-    const totalStops = stops.length - 1; // Exclude loading point
-    const verticalSpacing = 100; // pixels between stops
-    const startY = 120; // Starting position from top
+    // Calculate vertical positions for stops
+    const totalStops = stops.length - 1;
+    const verticalSpacing = 100;
+    const startY = 120;
+    const containerHeight = startY + (totalStops * verticalSpacing) + 100;
     
     const routeHTML = `
         <div id="road-route-container" class="road-route-container">
@@ -366,7 +367,7 @@ async function displayRoute(stops) {
                 <p>Toca cualquier punto para ir a la dirección en <span style="font-weight: 700;">Google Maps</span></p>
             </div>
             
-            <div class="road-container">
+            <div class="road-container" style="height: ${containerHeight}px;">
                 <!-- Loading Point -->
                 <div class="loading-point" onclick="navigateTo('${stops[0].replace(/'/g, "\\'")}')">
                     🏢
@@ -377,7 +378,7 @@ async function displayRoute(stops) {
                 <div class="road"></div>
                 <div class="road-lines"></div>
                 
-                <!-- Stop Items - ANCHORED positions -->
+                <!-- Stop Items -->
                 ${stops.slice(1, -1).map((stop, i) => {
                     const isLeft = i % 2 === 0;
                     const stopNumber = i + 1;
@@ -414,14 +415,17 @@ async function displayRoute(stops) {
                         🏠
                     </div>
                 </div>
+                
+                <!-- Vehicle container for animations -->
+                <div id="vehicle-container"></div>
             </div>
         </div>
     `;
 
     container.innerHTML = routeHTML;
     
-    // Animate vehicles with delays to avoid collisions
-    animateVehicles();
+    // Start vehicle animation (limited, no spam)
+    startVehicleAnimation();
     
     setTimeout(() => {
         routeResults.style.display = 'block';
@@ -437,56 +441,53 @@ async function displayRoute(stops) {
     }, 50);
 }
 
-function animateVehicles() {
-    const roadContainer = document.querySelector('.road-container');
-    if (!roadContainer) return;
+function startVehicleAnimation() {
+    const vehicleContainer = document.getElementById('vehicle-container');
+    if (!vehicleContainer) return;
     
-    // Create vehicles with staggered timing
+    // Only create 2 vehicles total - one going up, one going down
     const vehicles = [
-        { emoji: '🚴', side: 'left', delay: 0, speed: 8000 },
-        { emoji: '🏍️', side: 'right', delay: 2000, speed: 4000 },
-        { emoji: '🚗', side: 'left', delay: 5000, speed: 10000 },
-        { emoji: '🚴', side: 'right', delay: 7000, speed: 9000 }
+        { emoji: '🚗', side: 'right', speed: 8000 },
+        { emoji: '🚴', side: 'left', speed: 12000 }
     ];
     
-    vehicles.forEach((v, index) => {
-        setTimeout(() => {
-            const vehicle = document.createElement('div');
-            vehicle.className = `vehicle-${v.side}`;
-            vehicle.textContent = v.emoji;
-            vehicle.style.animation = `drive${v.side === 'left' ? 'Up' : 'Down'} ${v.speed}ms linear infinite`;
-            roadContainer.appendChild(vehicle);
-            
-            // Remove old vehicles to prevent buildup
-            setTimeout(() => {
-                if (vehicle.parentNode) {
-                    vehicle.remove();
-                }
-            }, v.speed * 1.5);
-        }, v.delay);
+    vehicles.forEach((v) => {
+        const vehicle = document.createElement('div');
+        vehicle.className = 'vehicle-animated';
+        vehicle.textContent = v.emoji;
+        
+        if (v.side === 'right') {
+            vehicle.style.left = 'calc(50% + 10px)';
+            vehicle.style.animation = `driveDown ${v.speed}ms linear infinite`;
+        } else {
+            vehicle.style.left = 'calc(50% - 25px)';
+            vehicle.style.animation = `driveUp ${v.speed}ms linear infinite`;
+        }
+        
+        vehicleContainer.appendChild(vehicle);
     });
-    
-    // Repeat animation
-    setTimeout(() => animateVehicles(), 15000);
 }
 
-// Add keyframe animations dynamically
+// Add keyframe animations
 const style = document.createElement('style');
 style.textContent = `
     @keyframes driveUp {
-        from { bottom: -50px; opacity: 0; }
+        0% { bottom: -50px; opacity: 0; }
         10% { opacity: 1; }
         90% { opacity: 1; }
         100% { bottom: calc(100% + 50px); opacity: 0; }
     }
     @keyframes driveDown {
-        from { top: 80px; opacity: 0; }
+        0% { top: 80px; opacity: 0; }
         10% { opacity: 1; }
         90% { opacity: 1; }
         100% { top: calc(100% + 50px); opacity: 0; }
     }
 `;
-document.head.appendChild(style);
+if (!document.getElementById('vehicle-animations-style')) {
+    style.id = 'vehicle-animations-style';
+    document.head.appendChild(style);
+}
 async function calculateDistance(from, to) {
     try {
         console.log(`Calculating distance: "${from}" to "${to}"`);
