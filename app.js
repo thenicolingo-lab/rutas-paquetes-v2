@@ -210,6 +210,11 @@ async function analyzeWithGroq() {
         alert('⚠️ Falta la API Key de Groq.');
         return;
     }
+    // Groq API Limit: Maximum 5 images per request
+    if (uploadedImages.length > 5) {
+        alert('⚠️ La API de Groq permite analizar un máximo de 5 fotos a la vez. Por favor, sube menos fotos.');
+        return;
+    }
     
     const btn = document.getElementById('analyze-btn');
     const originalText = btn.innerText;
@@ -252,14 +257,17 @@ Dirección 1, Municipio; Dirección 2, Municipio; Dirección 3, Municipio`
         }];
         
         for (const file of uploadedImages) {
+            // Get compressed base64 string
             const base64 = await imageToBase64(file);
             messages[0].content.push({
                 type: "image_url",
                 image_url: {
-                    url: `data:${file.type};base64,${base64}`
+                    // Force JPEG format to ensure Groq accepts it
+                    url: `data:image/jpeg;base64,${base64}`
                 }
             });
         }
+
 
         const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
             method: 'POST',
@@ -277,13 +285,16 @@ Dirección 1, Municipio; Dirección 2, Municipio; Dirección 3, Municipio`
 
         const data = await response.json();
         
-        if (data.choices && data.choices[0] && data.choices[0].message) {
+        // Check for successful API response
+        if (response.ok && data.choices && data.choices[0] && data.choices[0].message) {
             const extractedText = data.choices[0].message.content.trim();
             document.getElementById('extracted-addresses').value = extractedText;
             document.getElementById('ai-result-box').style.display = 'block';
             showSuccessMessage('✅ Análisis completado con IA');
         } else {
-            throw new Error('No se pudo procesar las imágenes');
+            // Extract the exact error message from Groq so you know exactly why it failed
+            const apiErrorMsg = data?.error?.message || 'Respuesta inválida de la API';
+            throw new Error(`Error de API (${response.status}): ${apiErrorMsg}`);
         }
 
     } catch (error) {
@@ -298,7 +309,38 @@ Dirección 1, Municipio; Dirección 2, Municipio; Dirección 3, Municipio`
 async function imageToBase64(file) {
     return new Promise((resolve, reject) => {
         const reader = new FileReader();
-        reader.onload = () => resolve(reader.result.split(',')[1]);
+        reader.onload = function(e) {
+            const img = new Image();
+            img.onload = function() {
+                const canvas = document.createElement('canvas');
+                let width = img.width;
+                let height = img.height;
+                
+                // Groq has a strict limit of 4MB for base64 images. 
+                // Resizing keeps us well below that limit while maintaining text readability.
+                const MAX_DIMENSION = 1280;
+
+                if (width > height && width > MAX_DIMENSION) {
+                    height = Math.round((height * MAX_DIMENSION) / width);
+                    width = MAX_DIMENSION;
+                } else if (height > MAX_DIMENSION) {
+                    width = Math.round((width * MAX_DIMENSION) / height);
+                    height = MAX_DIMENSION;
+                }
+
+                canvas.width = width;
+                canvas.height = height;
+
+                const ctx = canvas.getContext('2d');
+                ctx.drawImage(img, 0, 0, width, height);
+
+                // Force export to JPEG (0.8 quality) to fix iOS HEIC format issues and shrink file size
+                const base64 = canvas.toDataURL('image/jpeg', 0.8).split(',')[1];
+                resolve(base64);
+            };
+            img.onerror = reject;
+            img.src = e.target.result;
+        };
         reader.onerror = reject;
         reader.readAsDataURL(file);
     });
