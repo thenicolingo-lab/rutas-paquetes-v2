@@ -1,7 +1,7 @@
 // ==========================================
 // CONFIGURATION
 // ==========================================
-const GROQ_API_KEY = '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';
+const GROQ_API_KEY = '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';
 const API_KEY = 'eyJvcmciOiI1YjNjZTM1OTc4NTExMTAwMDFjZjYyNDgiLCJpZCI6IjEzZWNmZjAwZWNiYTQ4YjE5MTQ3MGZhZTFhZGMyY2E5IiwiaCI6Im11cm11cjY0In0=';
 
 // ==========================================
